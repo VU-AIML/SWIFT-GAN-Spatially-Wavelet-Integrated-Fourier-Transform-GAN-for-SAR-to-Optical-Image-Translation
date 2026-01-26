@@ -11,7 +11,7 @@
 
 ## 🏗 Architecture & Methodology
 
-SWIFT-GAN departs from standard CycleGAN architectures by introducing a hybrid generator and frequency-aware discriminators[cite: 25].
+SWIFT-GAN departs from standard CycleGAN architectures by introducing a hybrid generator and frequency-aware discriminators.
 
 ### 1. Hybrid Generator
 * **Lossless Wavelet Downsampling:** Instead of standard pooling (which discards details), we use Discrete Wavelet Transform (DWT) to split input into frequency bands (LL, LH, HL, HH).
@@ -19,25 +19,25 @@ SWIFT-GAN departs from standard CycleGAN architectures by introducing a hybrid g
 * **Swin Transformer Blocks:** Integrated into the bottleneck to capture long-range semantic dependencies.
 
 ### 2. Novel Loss Functions
-* **Phase Consistency Loss ($L_{phase}$):** Minimizes the $L_1$ distance between the Fourier phase spectra of the input SAR and generated Optical image. [cite_start]Since phase encodes structure, this prevents geometric hallucinations.
+* **Phase Consistency Loss ($L_{phase}$):** Minimizes the $L_1$ distance between the Fourier phase spectra of the input SAR and generated Optical image. Since phase encodes structure, this prevents geometric hallucinations.
 * **Wavelet Loss ($L_{wave}$):** Applies weighted supervision on DWT sub-bands to balance structure (LL) and texture (HH).
 * **LAB Color Loss ($L_{color}$):** Matches the mean and std of 'A' and 'B' channels in CIELAB space to ensure atmospheric realism without distorting luminance (structure).
 
 ### 3. Spectral Discriminator
-* [cite_start]**Spectral Gating:** A mechanism that learns to filter unrealistic frequency artifacts in the Fourier domain, ensuring generated images match the spectral density of real optical data.
+**Spectral Gating:** A mechanism that learns to filter unrealistic frequency artifacts in the Fourier domain, ensuring generated images match the spectral density of real optical data.
 
 ---
 
 ## 📂 Dataset: Vilnius Benchmark
 
-[cite_start]The project uses a curated Sentinel-1/2 dataset covering the Vilnius region ($292.95 km^2$)[cite: 44].
+The project uses a curated Sentinel-1/2 dataset covering the Vilnius region ($292.95 km^2$).
 
-* [cite_start]**SAR Input:** 3-Channel Composite [cite: 55]
+**SAR Input:** 3-Channel Composite
     * Channel 1: **VV** Polarization
     * Channel 2: **VH** Polarization
     * Channel 3: **VH/VV Ratio** (Physics-informed feature for volume scattering).
-* [cite_start]**Optical Target:** Sentinel-2 RGB (Cloud-free, <30%)[cite: 47].
-* [cite_start]**Preprocessing:** All images are tiled into $256 \times 256$ non-overlapping patches[cite: 49].
+**Optical Target:** Sentinel-2 RGB (Cloud-free, <30%).
+**Preprocessing:** All images are tiled into $256 \times 256$ non-overlapping patches.
 
 ---
 
