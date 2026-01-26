@@ -14,17 +14,17 @@
 SWIFT-GAN departs from standard CycleGAN architectures by introducing a hybrid generator and frequency-aware discriminators[cite: 25].
 
 ### 1. Hybrid Generator
-* **Lossless Wavelet Downsampling:** Instead of standard pooling (which discards details), we use Discrete Wavelet Transform (DWT) to split input into frequency bands (LL, LH, HL, HH)[cite: 64, 65].
-* **Spectral Transform Blocks (STB):** Operates in the Fourier domain to modulate amplitude (style) while **strictly preserving phase (structure)**[cite: 89].
-* **Swin Transformer Blocks:** Integrated into the bottleneck to capture long-range semantic dependencies[cite: 69].
+* **Lossless Wavelet Downsampling:** Instead of standard pooling (which discards details), we use Discrete Wavelet Transform (DWT) to split input into frequency bands (LL, LH, HL, HH).
+* **Spectral Transform Blocks (STB):** Operates in the Fourier domain to modulate amplitude (style) while **strictly preserving phase (structure)**.
+* **Swin Transformer Blocks:** Integrated into the bottleneck to capture long-range semantic dependencies.
 
 ### 2. Novel Loss Functions
-* **Phase Consistency Loss ($L_{phase}$):** Minimizes the $L_1$ distance between the Fourier phase spectra of the input SAR and generated Optical image. [cite_start]Since phase encodes structure, this prevents geometric hallucinations[cite: 104, 105].
-* **Wavelet Loss ($L_{wave}$):** Applies weighted supervision on DWT sub-bands to balance structure (LL) and texture (HH)[cite: 107].
-* **LAB Color Loss ($L_{color}$):** Matches the mean and std of 'A' and 'B' channels in CIELAB space to ensure atmospheric realism without distorting luminance (structure)[cite: 135].
+* **Phase Consistency Loss ($L_{phase}$):** Minimizes the $L_1$ distance between the Fourier phase spectra of the input SAR and generated Optical image. [cite_start]Since phase encodes structure, this prevents geometric hallucinations.
+* **Wavelet Loss ($L_{wave}$):** Applies weighted supervision on DWT sub-bands to balance structure (LL) and texture (HH).
+* **LAB Color Loss ($L_{color}$):** Matches the mean and std of 'A' and 'B' channels in CIELAB space to ensure atmospheric realism without distorting luminance (structure).
 
 ### 3. Spectral Discriminator
-* [cite_start]**Spectral Gating:** A mechanism that learns to filter unrealistic frequency artifacts in the Fourier domain, ensuring generated images match the spectral density of real optical data[cite: 99, 100].
+* [cite_start]**Spectral Gating:** A mechanism that learns to filter unrealistic frequency artifacts in the Fourier domain, ensuring generated images match the spectral density of real optical data.
 
 ---
 
