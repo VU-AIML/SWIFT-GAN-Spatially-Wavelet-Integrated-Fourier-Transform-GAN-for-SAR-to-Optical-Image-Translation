@@ -36,8 +36,12 @@ The project uses a curated Sentinel-1/2 dataset covering the Vilnius region ($29
     * Channel 1: **VV** Polarization
     * Channel 2: **VH** Polarization
     * Channel 3: **VH/VV Ratio** (Physics-informed feature for volume scattering).
+    
 **Optical Target:** Sentinel-2 RGB (Cloud-free, <30%).
+
 **Preprocessing:** All images are tiled into $256 \times 256$ non-overlapping patches.
+
+The dataset available at: https://zenodo.org/records/18373534
 
 ---
 
