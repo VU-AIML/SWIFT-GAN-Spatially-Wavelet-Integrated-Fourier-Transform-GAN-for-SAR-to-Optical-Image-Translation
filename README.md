@@ -112,7 +112,7 @@ SWIFT-GAN/
 ```
 
 ### 📜 Citation
-If you use this code or dataset in your research, please cite our paper:
+If you use this code or dataset in your research, please cite our paper.
 
 ```bash
 @inproceedings{komurcu2026swift,
