@@ -53,8 +53,21 @@ class WaveletDownsample(nn.Module):
 
 class SpectralTransformBlock(nn.Module):
     """
-    NOVELTY 2: Phase-Aware Frequency Processing Block.
-    Modulates Amplitude (Style/Texture) but preserves Phase (Structure/Geometry).
+    NOVELTY 2: Phase-Aware Frequency Processing Block (soft phase lock).
+
+    Core idea (unchanged): amplitude carries style/texture, phase carries
+    structure/geometry. We modulate amplitude freely and KEEP the phase almost
+    fixed to preserve SAR structure.
+
+    Soft phase lock:
+    - Fully freezing the phase (new_phase = phase) leaves the generator unable to
+      make the small geometric adjustments needed to turn SAR structure into a
+      plausible optical image, which pushes it toward a degenerate flat/black
+      output (mode collapse). Instead we allow a SMALL, learnable phase correction
+      `dphase`, gated by `phase_scale` which starts at 0. So at initialization the
+      phase is still exactly frozen (thesis-consistent), and during training the
+      network may open up a limited amount of phase adjustment as needed. The bulk
+      of the phase (structure) is preserved; only a bounded refinement is learned.
     """
     def __init__(self, channels):
         super(SpectralTransformBlock, self).__init__()
@@ -63,28 +76,50 @@ class SpectralTransformBlock(nn.Module):
             nn.Conv2d(channels, channels, 1),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Conv2d(channels, channels, 1),
-            nn.Sigmoid() 
+            nn.Sigmoid()
         )
+        # Small learnable phase-correction network (operates on real+imag features)
+        self.phase_conv = nn.Sequential(
+            nn.Conv2d(channels * 2, channels, 1),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(channels, channels, 1),
+            nn.Tanh()  # bounded correction in [-1, 1] before scaling
+        )
+        # Normalize the frequency branch output to keep its scale in check
+        self.norm = nn.InstanceNorm2d(channels)
+        # Residual gate, small positive init so the frequency branch is slightly
+        # active from the start (lets gradients reach phase_scale). The amplitude
+        # path dominates early; the branch grows only if it helps.
+        self.gamma = nn.Parameter(torch.full((1,), 0.1))
+        # Phase-correction gate, starts at 0 -> phase fully frozen at init,
+        # opens up gradually during training (soft phase lock).
+        self.phase_scale = nn.Parameter(torch.zeros(1))
 
     def forward(self, x):
         # 1. FFT
         x_fft = torch.fft.rfft2(x, norm='ortho')
         amp = torch.abs(x_fft)
         phase = torch.angle(x_fft)
-        
+
         # 2. Amplitude Modulation (Style Transfer / Denoising)
         amp_mask = self.amp_conv(amp)
         new_amp = amp * amp_mask
-        
-        # 3. Phase Preservation (Structure Locking - CRITICAL for SAR)
-        new_phase = phase 
-        
+
+        # 3. Soft Phase Lock: phase is preserved plus a small, gated correction.
+        #    phase_scale starts at 0, so this is an exact phase freeze at init.
+        phase_in = torch.cat([x_fft.real, x_fft.imag], dim=1)
+        dphase = self.phase_conv(phase_in) * 3.141592653589793 * self.phase_scale
+        new_phase = phase + dphase
+
         # 4. Inverse FFT
         new_fft = torch.polar(new_amp, new_phase)
         x_spatial = torch.fft.irfft2(new_fft, s=x.shape[2:], norm='ortho')
-        
-        # Residual Connection
-        return x + x_spatial
+
+        # 5. Normalize the frequency branch, then add as a gated residual
+        x_spatial = self.norm(x_spatial)
+
+        # Gated Residual Connection (gamma starts at 0 -> identity at init)
+        return x + self.gamma * x_spatial
 
 class SwinBlock(nn.Module):
     """
@@ -126,8 +161,15 @@ class SwinBlock(nn.Module):
 # 2. GENERATOR: SWIFT ARCHITECTURE
 # ==========================================================
 class SwiftGenerator(nn.Module):
-    def __init__(self, input_nc=3, output_nc=3, ngf=64):
+    def __init__(self, input_nc=3, output_nc=3, ngf=64, use_fft=True):
         super(SwiftGenerator, self).__init__()
+
+        # use_fft=False -> ABLATION "w/o FFT": the SpectralTransformBlocks are
+        # replaced by Identity, so the bottleneck keeps the exact same Swin layout
+        # and channel dims but performs no frequency (FFT) processing. Everything
+        # else (wavelet down/up, decoder) is unchanged, so this isolates the
+        # contribution of the FFT blocks only.
+        self.use_fft = use_fft
 
         # --- ENCODER (Frequency Aware) ---
         # Input: 256x256 -> Downsample -> 128x128
@@ -137,12 +179,14 @@ class SwiftGenerator(nn.Module):
 
         # --- BOTTLENECK (Hybrid: Swin + FFT) ---
         # Processing at 64x64 resolution
+        spectral_1 = SpectralTransformBlock(ngf * 4) if use_fft else nn.Identity()
+        spectral_2 = SpectralTransformBlock(ngf * 4) if use_fft else nn.Identity()
         self.bottleneck = nn.Sequential(
-            SwinBlock(ngf * 4),               # Global Context
-            SpectralTransformBlock(ngf * 4),  # Frequency Consistency
-            SwinBlock(ngf * 4),               # Global Context
-            SpectralTransformBlock(ngf * 4),  # Frequency Consistency
-            SwinBlock(ngf * 4)                # Global Context
+            SwinBlock(ngf * 4),   # Global Context
+            spectral_1,           # Frequency Consistency (or Identity if w/o FFT)
+            SwinBlock(ngf * 4),   # Global Context
+            spectral_2,           # Frequency Consistency (or Identity if w/o FFT)
+            SwinBlock(ngf * 4)    # Global Context
         )
 
         # --- DECODER (Spatial Reconstruction) ---
@@ -190,10 +234,22 @@ class SpectralGatingBlock(nn.Module):
     """
     NOVELTY 4: Frequency Gating Mechanism for Discriminator.
     Filters 'Fake' frequencies that don't match Real distribution.
+
+    Stability notes:
+    - The complex weight is initialized near 1 (identity filter) rather than near 0,
+      so the block passes features through unchanged at init instead of zeroing them.
+    - Applied as a gated residual (gamma starts at 0) so the spectral filtering ramps
+      up gradually and does not destabilize the discriminator early in training.
     """
     def __init__(self, dim):
         super(SpectralGatingBlock, self).__init__()
-        self.complex_weight = nn.Parameter(torch.randn(dim, 2, dtype=torch.float32) * 0.02)
+        # Initialize as an identity filter: real part ~1, imaginary part ~0
+        w = torch.zeros(dim, 2, dtype=torch.float32)
+        w[:, 0] = 1.0
+        w = w + torch.randn(dim, 2) * 0.02
+        self.complex_weight = nn.Parameter(w)
+        # Learnable residual scale, starts at 0 -> block is identity at init
+        self.gamma = nn.Parameter(torch.zeros(1))
 
     def forward(self, x):
         # FFT
@@ -202,10 +258,13 @@ class SpectralGatingBlock(nn.Module):
         
         # Apply learnable spectral filter
         # Expand weight to match spatial dims (broadcasting)
-        x_fft = x_fft * weight.view(1, -1, 1, 1)
+        x_filt = x_fft * weight.view(1, -1, 1, 1)
         
         # IFFT
-        return torch.fft.irfft2(x_fft, s=x.shape[2:], norm='ortho')
+        x_spatial = torch.fft.irfft2(x_filt, s=x.shape[2:], norm='ortho')
+
+        # Gated residual connection (gamma starts at 0 -> identity at init)
+        return x + self.gamma * x_spatial
 
 class SpectralDiscriminator(nn.Module):
     def __init__(self, input_nc=3, ndf=64):

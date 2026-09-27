@@ -1,0 +1,2704 @@
+[INFO] Activating virtual environment...
+[INFO] Job started at: Thu Jul  2 16:21:22 EEST 2026
+[INFO] Node running the job: node-38
+[INFO] GPU Information:
+Thu Jul  2 16:21:23 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.144.03             Driver Version: 550.144.03     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-SXM2-32GB           On  |   00000000:06:00.0 Off |                    0 |
+| N/A   29C    P0             41W /  300W |       1MiB /  32768MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+[INFO] Starting the training process...
+[INFO] LPIPS library found.
+[INFO] TorchMetrics library found (FID, KID, IS available).
+==============================================================================
+HEALTH CHECK (pre-training, no weights trained)
+==============================================================================
+
+[1] Loading ONE S1 (SAR) and ONE S2 (Optical) patch (no full scan)...
+    [S1] file=S1A_IW_GRDH_1SDV_20250802T043433_20250802T043458_060352_07804F_30F0_VV.tif window=(col=256, row=768)
+    [S2] scene bands B2/B3/B4 window=(col=0, row=1792)
+
+[2] Raw loaded tensor stats (expected range ~[-1, 1]):
+    real_A (SAR)               min=-1.0000 max=+1.0000 mean=+0.2911 std=+0.5459 NaN=False Inf=False sat>|.999|=20.9%
+    real_B (Optical)           min=-1.0000 max=+0.6200 mean=-0.5359 std=+0.2101 NaN=False Inf=False sat>|.999|=0.2%
+
+[3] Untrained generator forward pass (SAR -> fake Optical)...
+    fake_B (generated)         min=-0.9986 max=+0.9970 mean=+0.0059 std=+0.4990 NaN=False Inf=False sat>|.999|=0.0%
+
+[4] Post-denormalize sanity (this is what actually gets saved):
+    [ok     ] real_A (SAR)         denorm mean=0.6455 black_frac=2.1%
+    [ok     ] real_B (Optical)     denorm mean=0.2321 black_frac=0.2%
+    [ok     ] fake_B (generated)   denorm mean=0.5030 black_frac=0.1%
+
+[5] Save -> reload round trip through save_visual_grid()...
+    Reloaded PNG: mean=0.4484 black_frac=3.3% -> ./outputs_swift_gan_v3/healthcheck/healthcheck_grid.png
+
+[6] Single backward pass (gradient finiteness)...
+    [ok     ] gradients are finite.
+
+==============================================================================
+HEALTH CHECK RESULT: PASS
+==============================================================================
+
+[INFO] Health check passed. Starting full dataset scan + training...
+
+[INFO] Initializing SWIFT-GAN on cuda (FP32 + LAB Color Loss + Dual Metrics)...
+[INFO] Logging metrics to: ./outputs_swift_gan_v3/swift_metrics.csv
+[INFO] Scanning S1 files recursively to build patch index...
+[INFO] Scanning S2 files recursively to build patch index...
+[INFO] S1 valid patches: 702242 | S2 valid patches: 23888
+
+[PRE-TRAIN SAMPLE] Saving one input + generation before training...
+    [S1] file=S1A_IW_GRDH_1SDV_20250802T043433_20250802T043458_060352_07804F_30F0_VV.tif window=(col=256, row=768)
+    [S2-fullest] window=(col=0, row=1792)
+    Saved: ./outputs_swift_gan_v3/healthcheck/pretraining_sample.png  (panels: Input SAR | Generated Optical | Real Optical)
+Setting up [LPIPS] perceptual loss: trunk [alex], v[0.1], spatial [off]
+Loading model from: /scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/venv/lib/python3.10/site-packages/lpips/weights/v0.1/alex.pth
+Setting up [LPIPS] perceptual loss: trunk [alex], v[0.1], spatial [off]
+Loading model from: /scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/venv/lib/python3.10/site-packages/lpips/weights/v0.1/alex.pth
+[INFO] Config: Batch=2 | LAB_Style_Wt=0.1 | Phase_Wt=1.0
+[INFO] Saving a pre-training sample (epoch_0)...
+[INFO] Pre-training sample saved (opt_mean=0.196) -> ./outputs_swift_gan_v3/epoch_0_pretrain_sample.png
+[Ep 1/100] [Batch 0] Loss_G: 46.6015 | LAB_Style: 6.1330
+[Ep 1/100] [Batch 100] Loss_G: 9.4830 | LAB_Style: 0.9027
+[Ep 1/100] [Batch 200] Loss_G: 18.1862 | LAB_Style: 0.3157
+[Ep 1/100] [Batch 300] Loss_G: 7.8259 | LAB_Style: 1.1524
+[Ep 1/100] [Batch 400] Loss_G: 6.4908 | LAB_Style: 0.6773
+[Ep 1/100] [Batch 500] Loss_G: 7.1925 | LAB_Style: 1.6082
+[Ep 1/100] [Batch 600] Loss_G: 8.7786 | LAB_Style: 1.1856
+[Ep 1/100] [Batch 700] Loss_G: 5.6504 | LAB_Style: 0.3259
+[Ep 1/100] [Batch 800] Loss_G: 7.4142 | LAB_Style: 0.9344
+[Ep 1/100] [Batch 900] Loss_G: 13.5764 | LAB_Style: 0.3312
+[Ep 1/100] [Batch 1000] Loss_G: 6.8912 | LAB_Style: 0.3277
+[Ep 1/100] [Batch 1100] Loss_G: 9.4029 | LAB_Style: 2.1945
+[Ep 1/100] [Batch 1200] Loss_G: 6.3767 | LAB_Style: 0.5828
+[Ep 1/100] [Batch 1300] Loss_G: 6.0145 | LAB_Style: 0.3401
+[Ep 1/100] [Batch 1400] Loss_G: 5.9050 | LAB_Style: 0.8703
+[Ep 1/100] [Batch 1500] Loss_G: 6.7263 | LAB_Style: 0.9760
+[Ep 1/100] [Batch 1600] Loss_G: 5.9680 | LAB_Style: 0.3390
+[Ep 1/100] [Batch 1700] Loss_G: 5.9573 | LAB_Style: 0.4453
+[Ep 1/100] [Batch 1800] Loss_G: 7.3831 | LAB_Style: 0.9356
+[Ep 1/100] [Batch 1900] Loss_G: 6.6918 | LAB_Style: 1.0434
+[Ep 1/100] [Batch 2000] Loss_G: 5.0252 | LAB_Style: 0.5801
+[Ep 1/100] [Batch 2100] Loss_G: 5.9237 | LAB_Style: 0.6249
+[Ep 1/100] [Batch 2200] Loss_G: 5.6964 | LAB_Style: 0.2284
+[Ep 1/100] [Batch 2300] Loss_G: 6.3852 | LAB_Style: 0.4354
+[Ep 1/100] [Batch 2400] Loss_G: 5.1793 | LAB_Style: 0.4292
+[Ep 1/100] [Batch 2500] Loss_G: 7.0088 | LAB_Style: 1.0900
+[Ep 1/100] [Batch 2600] Loss_G: 6.9160 | LAB_Style: 1.0132
+[Ep 1/100] [Batch 2700] Loss_G: 6.1980 | LAB_Style: 0.3576
+[Ep 1/100] [Batch 2800] Loss_G: 6.8479 | LAB_Style: 1.4504
+[Ep 1/100] [Batch 2900] Loss_G: 8.4826 | LAB_Style: 2.2178
+[Ep 1/100] [Batch 3000] Loss_G: 7.5164 | LAB_Style: 0.5900
+[Ep 1/100] [Batch 3100] Loss_G: 5.3534 | LAB_Style: 0.5620
+[Ep 1/100] [Batch 3200] Loss_G: 6.7845 | LAB_Style: 0.6881
+[Ep 1/100] [Batch 3300] Loss_G: 10.9692 | LAB_Style: 1.4513
+[Ep 1/100] [Batch 3400] Loss_G: 6.3554 | LAB_Style: 1.3782
+[Ep 1/100] [Batch 3500] Loss_G: 5.5301 | LAB_Style: 0.9724
+[Ep 1/100] [Batch 3600] Loss_G: 5.8912 | LAB_Style: 0.8418
+[Ep 1/100] [Batch 3700] Loss_G: 5.8577 | LAB_Style: 1.2129
+[Ep 1/100] [Batch 3800] Loss_G: 4.8703 | LAB_Style: 0.5166
+[Ep 1/100] [Batch 3900] Loss_G: 6.1122 | LAB_Style: 0.4219
+[Ep 1/100] [Batch 4000] Loss_G: 7.5028 | LAB_Style: 1.6416
+[Ep 1/100] [Batch 4100] Loss_G: 6.3138 | LAB_Style: 0.6642
+[Ep 1/100] [Batch 4200] Loss_G: 8.4289 | LAB_Style: 1.5982
+[Ep 1/100] [Batch 4300] Loss_G: 7.4206 | LAB_Style: 1.3603
+[Ep 1/100] [Batch 4400] Loss_G: 5.1219 | LAB_Style: 0.6419
+[Ep 1/100] [Batch 4500] Loss_G: 7.1805 | LAB_Style: 1.4236
+[Ep 1/100] [Batch 4600] Loss_G: 5.1075 | LAB_Style: 0.6799
+[Ep 1/100] [Batch 4700] Loss_G: 6.1152 | LAB_Style: 1.2350
+[Ep 1/100] [Batch 4800] Loss_G: 5.0015 | LAB_Style: 0.9587
+[Ep 1/100] [Batch 4900] Loss_G: 6.2672 | LAB_Style: 1.3001
+[Ep 1/100] [Batch 5000] Loss_G: 5.1619 | LAB_Style: 0.9571
+[Ep 1/100] [Batch 5100] Loss_G: 6.1287 | LAB_Style: 1.4417
+[Ep 1/100] [Batch 5200] Loss_G: 5.2720 | LAB_Style: 0.8448
+[Ep 1/100] [Batch 5300] Loss_G: 6.2087 | LAB_Style: 1.2271
+[Ep 1/100] [Batch 5400] Loss_G: 6.4335 | LAB_Style: 1.0626
+[Ep 1/100] [Batch 5500] Loss_G: 6.1751 | LAB_Style: 0.7341
+[Ep 1/100] [Batch 5600] Loss_G: 4.7722 | LAB_Style: 0.6656
+[Ep 1/100] [Batch 5700] Loss_G: 6.1521 | LAB_Style: 1.3933
+[Ep 1/100] [Batch 5800] Loss_G: 5.5326 | LAB_Style: 0.9793
+[Ep 1/100] [Batch 5900] Loss_G: 4.8657 | LAB_Style: 0.7108
+[Ep 1/100] [Batch 6000] Loss_G: 4.1994 | LAB_Style: 0.2493
+[Ep 1/100] [Batch 6100] Loss_G: 5.7801 | LAB_Style: 0.8156
+[Ep 1/100] [Batch 6200] Loss_G: 8.1706 | LAB_Style: 0.9307
+[Ep 1/100] [Batch 6300] Loss_G: 6.5134 | LAB_Style: 0.7550
+[Ep 1/100] [Batch 6400] Loss_G: 10.4695 | LAB_Style: 1.2657
+[Ep 1/100] [Batch 6500] Loss_G: 6.3635 | LAB_Style: 0.7737
+[Ep 1/100] [Batch 6600] Loss_G: 5.8118 | LAB_Style: 1.2283
+[Ep 1/100] [Batch 6700] Loss_G: 5.6107 | LAB_Style: 0.2018
+[Ep 1/100] [Batch 6800] Loss_G: 6.3242 | LAB_Style: 1.3288
+[Ep 1/100] [Batch 6900] Loss_G: 5.6088 | LAB_Style: 1.1559
+[Ep 1/100] [Batch 7000] Loss_G: 5.4850 | LAB_Style: 1.0733
+[Ep 1/100] [Batch 7100] Loss_G: 6.2506 | LAB_Style: 1.9151
+[Ep 1/100] [Batch 7200] Loss_G: 4.5853 | LAB_Style: 0.6492
+[Ep 1/100] [Batch 7300] Loss_G: 18.3102 | LAB_Style: 2.0502
+[Ep 1/100] [Batch 7400] Loss_G: 5.8868 | LAB_Style: 0.7793
+[Ep 1/100] [Batch 7500] Loss_G: 8.4907 | LAB_Style: 3.2307
+[Ep 1/100] [Batch 7600] Loss_G: 5.6637 | LAB_Style: 0.5453
+[Ep 1/100] [Batch 7700] Loss_G: 6.1068 | LAB_Style: 0.8240
+[Ep 1/100] [Batch 7800] Loss_G: 6.7864 | LAB_Style: 0.8582
+[Ep 1/100] [Batch 7900] Loss_G: 6.8569 | LAB_Style: 1.0519
+[Ep 1/100] [Batch 8000] Loss_G: 7.5469 | LAB_Style: 1.5868
+[Ep 1/100] [Batch 8100] Loss_G: 6.7045 | LAB_Style: 0.8940
+[Ep 1/100] [Batch 8200] Loss_G: 7.1412 | LAB_Style: 1.4563
+[Ep 1/100] [Batch 8300] Loss_G: 6.9265 | LAB_Style: 1.8123
+[Ep 1/100] [Batch 8400] Loss_G: 7.3103 | LAB_Style: 1.9581
+[Ep 1/100] [Batch 8500] Loss_G: 11.6285 | LAB_Style: 1.4371
+[Ep 1/100] [Batch 8600] Loss_G: 5.8852 | LAB_Style: 0.6681
+[Ep 1/100] [Batch 8700] Loss_G: 6.4212 | LAB_Style: 1.6721
+[Ep 1/100] [Batch 8800] Loss_G: 8.7703 | LAB_Style: 2.0808
+[Ep 1/100] [Batch 8900] Loss_G: 6.3883 | LAB_Style: 1.8921
+[Ep 1/100] [Batch 9000] Loss_G: 7.3837 | LAB_Style: 1.2189
+[Ep 1/100] [Batch 9100] Loss_G: 4.6472 | LAB_Style: 0.5092
+[Ep 1/100] [Batch 9200] Loss_G: 5.4725 | LAB_Style: 1.2050
+[Ep 1/100] [Batch 9300] Loss_G: 5.2813 | LAB_Style: 0.9970
+[Ep 1/100] [Batch 9400] Loss_G: 5.0718 | LAB_Style: 1.0195
+[Ep 1/100] [Batch 9500] Loss_G: 5.9523 | LAB_Style: 0.4622
+[Ep 1/100] [Batch 9600] Loss_G: 6.0825 | LAB_Style: 0.7669
+[Ep 1/100] [Batch 9700] Loss_G: 7.2640 | LAB_Style: 1.5224
+[Ep 1/100] [Batch 9800] Loss_G: 5.1802 | LAB_Style: 1.2208
+[Ep 1/100] [Batch 9900] Loss_G: 5.3687 | LAB_Style: 0.8894
+[Ep 1/100] [Batch 10000] Loss_G: 4.9440 | LAB_Style: 1.0205
+[Ep 1/100] [Batch 10100] Loss_G: 4.6226 | LAB_Style: 0.8948
+[Ep 1/100] [Batch 10200] Loss_G: 5.0391 | LAB_Style: 0.5820
+[Ep 1/100] [Batch 10300] Loss_G: 7.2110 | LAB_Style: 1.5040
+[Ep 1/100] [Batch 10400] Loss_G: 6.1482 | LAB_Style: 1.1675
+[Ep 1/100] [Batch 10500] Loss_G: 7.2006 | LAB_Style: 1.6358
+[Ep 1/100] [Batch 10600] Loss_G: 5.6165 | LAB_Style: 0.6218
+[Ep 1/100] [Batch 10700] Loss_G: 5.0412 | LAB_Style: 0.5158
+[Ep 1/100] [Batch 10800] Loss_G: 5.8980 | LAB_Style: 1.3093
+[Ep 1/100] [Batch 10900] Loss_G: 6.6808 | LAB_Style: 1.0990
+[Ep 1/100] [Batch 11000] Loss_G: 7.0087 | LAB_Style: 1.8467
+[Ep 1/100] [Batch 11100] Loss_G: 4.4969 | LAB_Style: 0.8748
+[Ep 1/100] [Batch 11200] Loss_G: 6.2540 | LAB_Style: 0.9853
+[Ep 1/100] [Batch 11300] Loss_G: 4.7616 | LAB_Style: 0.6934
+[Ep 1/100] [Batch 11400] Loss_G: 4.9734 | LAB_Style: 0.9444
+[Ep 1/100] [Batch 11500] Loss_G: 5.5551 | LAB_Style: 1.1182
+[Ep 1/100] [Batch 11600] Loss_G: 5.8651 | LAB_Style: 0.7453
+[Ep 1/100] [Batch 11700] Loss_G: 6.3417 | LAB_Style: 0.8944
+[Ep 1/100] [Batch 11800] Loss_G: 7.7950 | LAB_Style: 0.5725
+[Ep 1/100] [Batch 11900] Loss_G: 5.7057 | LAB_Style: 1.2300
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 1 FINISHED | Time: 8926s
+LOSSES    >> G: 7.1038 | Phase: 1.0256 | LAB_Style: 1.1630
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 21.78
+   SSIM : 0.8735
+   GSSIM: 0.8229
+   MAE  : 0.0600
+   LPIPS: 0.0915
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 16.84
+   SSIM : 0.2957
+   GSSIM: 0.1574
+   MAE  : 0.1243
+   LPIPS: 0.5979
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 151.28
+   KID  : 0.14230
+   IS   : 2.52
+=====================================================================================
+
+[Ep 2/100] [Batch 0] Loss_G: 6.4685 | LAB_Style: 0.8947
+[Ep 2/100] [Batch 100] Loss_G: 6.0159 | LAB_Style: 0.8683
+[Ep 2/100] [Batch 200] Loss_G: 3.9009 | LAB_Style: 0.4849
+[Ep 2/100] [Batch 300] Loss_G: 5.8067 | LAB_Style: 1.1209
+[Ep 2/100] [Batch 400] Loss_G: 4.7878 | LAB_Style: 0.5761
+[Ep 2/100] [Batch 500] Loss_G: 5.2747 | LAB_Style: 1.1294
+[Ep 2/100] [Batch 600] Loss_G: 7.0021 | LAB_Style: 2.2244
+[Ep 2/100] [Batch 700] Loss_G: 4.7571 | LAB_Style: 0.9038
+[Ep 2/100] [Batch 800] Loss_G: 5.5687 | LAB_Style: 1.0348
+[Ep 2/100] [Batch 900] Loss_G: 5.7846 | LAB_Style: 0.5499
+[Ep 2/100] [Batch 1000] Loss_G: 7.7473 | LAB_Style: 0.8933
+[Ep 2/100] [Batch 1100] Loss_G: 7.3175 | LAB_Style: 1.6207
+[Ep 2/100] [Batch 1200] Loss_G: 5.9149 | LAB_Style: 0.8692
+[Ep 2/100] [Batch 1300] Loss_G: 4.8264 | LAB_Style: 0.7809
+[Ep 2/100] [Batch 1400] Loss_G: 5.7671 | LAB_Style: 0.7296
+[Ep 2/100] [Batch 1500] Loss_G: 5.1492 | LAB_Style: 0.8251
+[Ep 2/100] [Batch 1600] Loss_G: 5.9941 | LAB_Style: 1.3365
+[Ep 2/100] [Batch 1700] Loss_G: 4.6481 | LAB_Style: 0.4656
+[Ep 2/100] [Batch 1800] Loss_G: 7.1635 | LAB_Style: 0.8074
+[Ep 2/100] [Batch 1900] Loss_G: 6.0819 | LAB_Style: 0.3529
+[Ep 2/100] [Batch 2000] Loss_G: 4.9562 | LAB_Style: 0.2584
+[Ep 2/100] [Batch 2100] Loss_G: 6.2272 | LAB_Style: 0.9750
+[Ep 2/100] [Batch 2200] Loss_G: 5.3707 | LAB_Style: 1.1222
+[Ep 2/100] [Batch 2300] Loss_G: 5.5043 | LAB_Style: 1.1514
+[Ep 2/100] [Batch 2400] Loss_G: 5.2792 | LAB_Style: 1.1608
+[Ep 2/100] [Batch 2500] Loss_G: 5.2924 | LAB_Style: 0.4302
+[Ep 2/100] [Batch 2600] Loss_G: 5.4394 | LAB_Style: 1.3104
+[Ep 2/100] [Batch 2700] Loss_G: 5.2771 | LAB_Style: 1.1084
+[Ep 2/100] [Batch 2800] Loss_G: 4.1756 | LAB_Style: 0.3989
+[Ep 2/100] [Batch 2900] Loss_G: 4.3464 | LAB_Style: 0.6160
+[Ep 2/100] [Batch 3000] Loss_G: 5.0492 | LAB_Style: 0.5823
+[Ep 2/100] [Batch 3100] Loss_G: 6.3975 | LAB_Style: 1.8034
+[Ep 2/100] [Batch 3200] Loss_G: 8.3592 | LAB_Style: 2.4269
+[Ep 2/100] [Batch 3300] Loss_G: 5.7508 | LAB_Style: 1.2966
+[Ep 2/100] [Batch 3400] Loss_G: 6.1624 | LAB_Style: 1.8512
+[Ep 2/100] [Batch 3500] Loss_G: 4.6616 | LAB_Style: 0.7868
+[Ep 2/100] [Batch 3600] Loss_G: 5.9645 | LAB_Style: 1.5008
+[Ep 2/100] [Batch 3700] Loss_G: 4.7869 | LAB_Style: 1.1994
+[Ep 2/100] [Batch 3800] Loss_G: 4.9829 | LAB_Style: 0.6769
+[Ep 2/100] [Batch 3900] Loss_G: 5.1238 | LAB_Style: 0.8398
+[Ep 2/100] [Batch 4000] Loss_G: 5.0474 | LAB_Style: 0.9233
+[Ep 2/100] [Batch 4100] Loss_G: 8.9555 | LAB_Style: 1.9810
+[Ep 2/100] [Batch 4200] Loss_G: 4.9657 | LAB_Style: 0.6223
+[Ep 2/100] [Batch 4300] Loss_G: 4.7486 | LAB_Style: 0.3639
+[Ep 2/100] [Batch 4400] Loss_G: 6.2678 | LAB_Style: 0.7848
+[Ep 2/100] [Batch 4500] Loss_G: 5.1883 | LAB_Style: 0.5147
+[Ep 2/100] [Batch 4600] Loss_G: 8.4547 | LAB_Style: 1.1281
+[Ep 2/100] [Batch 4700] Loss_G: 7.7235 | LAB_Style: 1.2051
+[Ep 2/100] [Batch 4800] Loss_G: 5.7341 | LAB_Style: 1.1354
+[Ep 2/100] [Batch 4900] Loss_G: 4.8527 | LAB_Style: 1.1645
+[Ep 2/100] [Batch 5000] Loss_G: 4.9916 | LAB_Style: 0.4994
+[Ep 2/100] [Batch 5100] Loss_G: 5.9494 | LAB_Style: 0.5890
+[Ep 2/100] [Batch 5200] Loss_G: 4.6294 | LAB_Style: 0.4896
+[Ep 2/100] [Batch 5300] Loss_G: 4.8243 | LAB_Style: 1.0810
+[Ep 2/100] [Batch 5400] Loss_G: 6.0439 | LAB_Style: 1.1663
+[Ep 2/100] [Batch 5500] Loss_G: 5.7719 | LAB_Style: 0.8887
+[Ep 2/100] [Batch 5600] Loss_G: 9.3821 | LAB_Style: 1.1456
+[Ep 2/100] [Batch 5700] Loss_G: 4.2029 | LAB_Style: 0.4189
+[Ep 2/100] [Batch 5800] Loss_G: 5.5077 | LAB_Style: 1.0902
+[Ep 2/100] [Batch 5900] Loss_G: 8.0748 | LAB_Style: 3.2316
+[Ep 2/100] [Batch 6000] Loss_G: 6.2107 | LAB_Style: 1.3643
+[Ep 2/100] [Batch 6100] Loss_G: 5.9496 | LAB_Style: 1.0067
+[Ep 2/100] [Batch 6200] Loss_G: 4.3946 | LAB_Style: 0.5438
+[Ep 2/100] [Batch 6300] Loss_G: 4.9968 | LAB_Style: 0.3522
+[Ep 2/100] [Batch 6400] Loss_G: 6.7580 | LAB_Style: 2.0458
+[Ep 2/100] [Batch 6500] Loss_G: 6.0344 | LAB_Style: 1.0213
+[Ep 2/100] [Batch 6600] Loss_G: 5.0486 | LAB_Style: 1.2389
+[Ep 2/100] [Batch 6700] Loss_G: 4.4338 | LAB_Style: 0.2978
+[Ep 2/100] [Batch 6800] Loss_G: 5.6217 | LAB_Style: 0.5365
+[Ep 2/100] [Batch 6900] Loss_G: 5.1425 | LAB_Style: 0.4812
+[Ep 2/100] [Batch 7000] Loss_G: 4.9698 | LAB_Style: 0.6969
+[Ep 2/100] [Batch 7100] Loss_G: 5.0910 | LAB_Style: 1.2694
+[Ep 2/100] [Batch 7200] Loss_G: 9.5029 | LAB_Style: 1.4709
+[Ep 2/100] [Batch 7300] Loss_G: 5.6677 | LAB_Style: 0.8393
+[Ep 2/100] [Batch 7400] Loss_G: 5.8173 | LAB_Style: 0.6567
+[Ep 2/100] [Batch 7500] Loss_G: 4.8988 | LAB_Style: 0.8535
+[Ep 2/100] [Batch 7600] Loss_G: 5.8188 | LAB_Style: 0.8632
+[Ep 2/100] [Batch 7700] Loss_G: 5.0719 | LAB_Style: 1.2688
+[Ep 2/100] [Batch 7800] Loss_G: 5.0798 | LAB_Style: 1.1388
+[Ep 2/100] [Batch 7900] Loss_G: 4.8686 | LAB_Style: 0.7821
+[Ep 2/100] [Batch 8000] Loss_G: 6.9906 | LAB_Style: 1.5081
+[Ep 2/100] [Batch 8100] Loss_G: 5.3063 | LAB_Style: 1.3133
+[Ep 2/100] [Batch 8200] Loss_G: 3.8322 | LAB_Style: 0.6872
+[Ep 2/100] [Batch 8300] Loss_G: 5.2431 | LAB_Style: 1.3038
+[Ep 2/100] [Batch 8400] Loss_G: 4.4090 | LAB_Style: 0.5285
+[Ep 2/100] [Batch 8500] Loss_G: 5.7470 | LAB_Style: 1.1101
+[Ep 2/100] [Batch 8600] Loss_G: 5.5199 | LAB_Style: 1.1480
+[Ep 2/100] [Batch 8700] Loss_G: 5.3453 | LAB_Style: 1.0468
+[Ep 2/100] [Batch 8800] Loss_G: 4.5410 | LAB_Style: 0.4004
+[Ep 2/100] [Batch 8900] Loss_G: 10.2356 | LAB_Style: 1.0353
+[Ep 2/100] [Batch 9000] Loss_G: 5.1432 | LAB_Style: 1.1896
+[Ep 2/100] [Batch 9100] Loss_G: 8.3174 | LAB_Style: 1.7378
+[Ep 2/100] [Batch 9200] Loss_G: 5.9376 | LAB_Style: 0.4353
+[Ep 2/100] [Batch 9300] Loss_G: 5.3635 | LAB_Style: 1.0023
+[Ep 2/100] [Batch 9400] Loss_G: 7.2221 | LAB_Style: 2.1968
+[Ep 2/100] [Batch 9500] Loss_G: 5.3592 | LAB_Style: 1.0472
+[Ep 2/100] [Batch 9600] Loss_G: 5.1802 | LAB_Style: 0.7997
+[Ep 2/100] [Batch 9700] Loss_G: 7.0694 | LAB_Style: 2.1703
+[Ep 2/100] [Batch 9800] Loss_G: 4.5072 | LAB_Style: 0.7569
+[Ep 2/100] [Batch 9900] Loss_G: 6.0300 | LAB_Style: 1.0234
+[Ep 2/100] [Batch 10000] Loss_G: 7.3753 | LAB_Style: 1.6680
+[Ep 2/100] [Batch 10100] Loss_G: 4.6239 | LAB_Style: 0.7971
+[Ep 2/100] [Batch 10200] Loss_G: 4.5061 | LAB_Style: 0.7585
+[Ep 2/100] [Batch 10300] Loss_G: 4.8918 | LAB_Style: 0.8805
+[Ep 2/100] [Batch 10400] Loss_G: 5.1423 | LAB_Style: 1.0248
+[Ep 2/100] [Batch 10500] Loss_G: 5.3763 | LAB_Style: 1.2835
+[Ep 2/100] [Batch 10600] Loss_G: 4.7136 | LAB_Style: 0.6406
+[Ep 2/100] [Batch 10700] Loss_G: 4.9130 | LAB_Style: 1.0363
+[Ep 2/100] [Batch 10800] Loss_G: 5.2121 | LAB_Style: 0.6728
+[Ep 2/100] [Batch 10900] Loss_G: 5.5152 | LAB_Style: 1.0256
+[Ep 2/100] [Batch 11000] Loss_G: 7.0279 | LAB_Style: 1.7045
+[Ep 2/100] [Batch 11100] Loss_G: 4.6940 | LAB_Style: 0.4214
+[Ep 2/100] [Batch 11200] Loss_G: 6.1541 | LAB_Style: 0.4979
+[Ep 2/100] [Batch 11300] Loss_G: 5.1038 | LAB_Style: 1.1891
+[Ep 2/100] [Batch 11400] Loss_G: 4.6697 | LAB_Style: 0.5828
+[Ep 2/100] [Batch 11500] Loss_G: 6.4746 | LAB_Style: 1.4220
+[Ep 2/100] [Batch 11600] Loss_G: 5.0743 | LAB_Style: 1.2543
+[Ep 2/100] [Batch 11700] Loss_G: 6.4507 | LAB_Style: 2.0832
+[Ep 2/100] [Batch 11800] Loss_G: 5.8180 | LAB_Style: 1.0489
+[Ep 2/100] [Batch 11900] Loss_G: 4.9958 | LAB_Style: 1.1064
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 2 FINISHED | Time: 9033s
+LOSSES    >> G: 5.0024 | Phase: 0.7703 | LAB_Style: 0.7461
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 24.30
+   SSIM : 0.9314
+   GSSIM: 0.8849
+   MAE  : 0.0429
+   LPIPS: 0.0519
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.10
+   SSIM : 0.3291
+   GSSIM: 0.1742
+   MAE  : 0.1185
+   LPIPS: 0.5660
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 116.48
+   KID  : 0.10729
+   IS   : 2.53
+=====================================================================================
+
+[Ep 3/100] [Batch 0] Loss_G: 4.5469 | LAB_Style: 0.3050
+[Ep 3/100] [Batch 100] Loss_G: 5.0978 | LAB_Style: 0.8543
+[Ep 3/100] [Batch 200] Loss_G: 5.2826 | LAB_Style: 0.8465
+[Ep 3/100] [Batch 300] Loss_G: 6.9244 | LAB_Style: 2.2548
+[Ep 3/100] [Batch 400] Loss_G: 5.9770 | LAB_Style: 1.6190
+[Ep 3/100] [Batch 500] Loss_G: 5.4541 | LAB_Style: 0.8532
+[Ep 3/100] [Batch 600] Loss_G: 4.9589 | LAB_Style: 0.6898
+[Ep 3/100] [Batch 700] Loss_G: 6.1970 | LAB_Style: 1.4408
+[Ep 3/100] [Batch 800] Loss_G: 6.1554 | LAB_Style: 1.0663
+[Ep 3/100] [Batch 900] Loss_G: 7.1179 | LAB_Style: 0.5201
+[Ep 3/100] [Batch 1000] Loss_G: 4.8206 | LAB_Style: 1.0358
+[Ep 3/100] [Batch 1100] Loss_G: 5.5344 | LAB_Style: 0.7959
+[Ep 3/100] [Batch 1200] Loss_G: 4.7330 | LAB_Style: 0.5921
+[Ep 3/100] [Batch 1300] Loss_G: 8.6385 | LAB_Style: 2.6862
+[Ep 3/100] [Batch 1400] Loss_G: 5.4817 | LAB_Style: 1.7457
+[Ep 3/100] [Batch 1500] Loss_G: 6.0886 | LAB_Style: 0.8644
+[Ep 3/100] [Batch 1600] Loss_G: 7.7735 | LAB_Style: 1.6804
+[Ep 3/100] [Batch 1700] Loss_G: 5.8258 | LAB_Style: 1.3509
+[Ep 3/100] [Batch 1800] Loss_G: 6.2166 | LAB_Style: 1.2873
+[Ep 3/100] [Batch 1900] Loss_G: 4.3788 | LAB_Style: 0.8441
+[Ep 3/100] [Batch 2000] Loss_G: 5.4329 | LAB_Style: 0.9485
+[Ep 3/100] [Batch 2100] Loss_G: 4.4897 | LAB_Style: 0.5921
+[Ep 3/100] [Batch 2200] Loss_G: 10.8082 | LAB_Style: 3.9508
+[Ep 3/100] [Batch 2300] Loss_G: 5.1592 | LAB_Style: 0.4238
+[Ep 3/100] [Batch 2400] Loss_G: 4.2477 | LAB_Style: 1.0375
+[Ep 3/100] [Batch 2500] Loss_G: 5.0623 | LAB_Style: 0.8071
+[Ep 3/100] [Batch 2600] Loss_G: 6.0153 | LAB_Style: 1.0860
+[Ep 3/100] [Batch 2700] Loss_G: 5.9053 | LAB_Style: 1.5829
+[Ep 3/100] [Batch 2800] Loss_G: 6.5922 | LAB_Style: 1.4111
+[Ep 3/100] [Batch 2900] Loss_G: 5.3719 | LAB_Style: 0.4198
+[Ep 3/100] [Batch 3000] Loss_G: 7.4732 | LAB_Style: 2.1209
+[Ep 3/100] [Batch 3100] Loss_G: 6.3178 | LAB_Style: 1.2113
+[Ep 3/100] [Batch 3200] Loss_G: 6.3821 | LAB_Style: 1.0262
+[Ep 3/100] [Batch 3300] Loss_G: 5.2191 | LAB_Style: 0.7787
+[Ep 3/100] [Batch 3400] Loss_G: 6.5324 | LAB_Style: 1.2326
+[Ep 3/100] [Batch 3500] Loss_G: 5.5679 | LAB_Style: 0.8646
+[Ep 3/100] [Batch 3600] Loss_G: 6.4484 | LAB_Style: 1.4659
+[Ep 3/100] [Batch 3700] Loss_G: 4.2021 | LAB_Style: 0.6966
+[Ep 3/100] [Batch 3800] Loss_G: 4.6822 | LAB_Style: 0.5822
+[Ep 3/100] [Batch 3900] Loss_G: 5.1310 | LAB_Style: 0.8421
+[Ep 3/100] [Batch 4000] Loss_G: 4.8955 | LAB_Style: 0.6373
+[Ep 3/100] [Batch 4100] Loss_G: 5.6757 | LAB_Style: 1.3644
+[Ep 3/100] [Batch 4200] Loss_G: 6.4105 | LAB_Style: 1.2503
+[Ep 3/100] [Batch 4300] Loss_G: 4.8176 | LAB_Style: 0.4866
+[Ep 3/100] [Batch 4400] Loss_G: 5.1476 | LAB_Style: 0.5622
+[Ep 3/100] [Batch 4500] Loss_G: 3.9796 | LAB_Style: 0.6693
+[Ep 3/100] [Batch 4600] Loss_G: 4.7352 | LAB_Style: 0.6571
+[Ep 3/100] [Batch 4700] Loss_G: 5.7255 | LAB_Style: 0.5671
+[Ep 3/100] [Batch 4800] Loss_G: 6.2688 | LAB_Style: 1.1171
+[Ep 3/100] [Batch 4900] Loss_G: 4.1997 | LAB_Style: 0.4803
+[Ep 3/100] [Batch 5000] Loss_G: 7.9277 | LAB_Style: 2.4808
+[Ep 3/100] [Batch 5100] Loss_G: 4.9697 | LAB_Style: 0.9701
+[Ep 3/100] [Batch 5200] Loss_G: 6.3665 | LAB_Style: 1.8774
+[Ep 3/100] [Batch 5300] Loss_G: 5.8670 | LAB_Style: 1.1886
+[Ep 3/100] [Batch 5400] Loss_G: 6.4130 | LAB_Style: 1.7390
+[Ep 3/100] [Batch 5500] Loss_G: 5.2047 | LAB_Style: 1.7732
+[Ep 3/100] [Batch 5600] Loss_G: 5.0473 | LAB_Style: 0.6688
+[Ep 3/100] [Batch 5700] Loss_G: 5.0102 | LAB_Style: 0.7769
+[Ep 3/100] [Batch 5800] Loss_G: 5.3457 | LAB_Style: 0.6917
+[Ep 3/100] [Batch 5900] Loss_G: 5.8815 | LAB_Style: 0.6718
+[Ep 3/100] [Batch 6000] Loss_G: 5.4613 | LAB_Style: 0.9145
+[Ep 3/100] [Batch 6100] Loss_G: 4.8633 | LAB_Style: 0.5229
+[Ep 3/100] [Batch 6200] Loss_G: 4.6491 | LAB_Style: 0.3492
+[Ep 3/100] [Batch 6300] Loss_G: 5.1344 | LAB_Style: 0.5588
+[Ep 3/100] [Batch 6400] Loss_G: 5.7697 | LAB_Style: 1.7755
+[Ep 3/100] [Batch 6500] Loss_G: 4.2718 | LAB_Style: 0.3507
+[Ep 3/100] [Batch 6600] Loss_G: 4.5339 | LAB_Style: 0.7762
+[Ep 3/100] [Batch 6700] Loss_G: 4.9870 | LAB_Style: 0.7447
+[Ep 3/100] [Batch 6800] Loss_G: 6.9936 | LAB_Style: 1.1876
+[Ep 3/100] [Batch 6900] Loss_G: 5.0248 | LAB_Style: 1.6666
+[Ep 3/100] [Batch 7000] Loss_G: 4.9706 | LAB_Style: 1.0028
+[Ep 3/100] [Batch 7100] Loss_G: 6.4508 | LAB_Style: 1.3551
+[Ep 3/100] [Batch 7200] Loss_G: 6.4766 | LAB_Style: 1.6417
+[Ep 3/100] [Batch 7300] Loss_G: 5.4498 | LAB_Style: 0.8242
+[Ep 3/100] [Batch 7400] Loss_G: 4.6290 | LAB_Style: 1.0810
+[Ep 3/100] [Batch 7500] Loss_G: 4.3331 | LAB_Style: 0.1736
+[Ep 3/100] [Batch 7600] Loss_G: 5.5305 | LAB_Style: 0.6124
+[Ep 3/100] [Batch 7700] Loss_G: 5.0162 | LAB_Style: 0.7230
+[Ep 3/100] [Batch 7800] Loss_G: 5.5193 | LAB_Style: 1.0492
+[Ep 3/100] [Batch 7900] Loss_G: 6.3654 | LAB_Style: 1.5019
+[Ep 3/100] [Batch 8000] Loss_G: 6.0936 | LAB_Style: 1.5247
+[Ep 3/100] [Batch 8100] Loss_G: 5.3722 | LAB_Style: 0.9118
+[Ep 3/100] [Batch 8200] Loss_G: 5.0922 | LAB_Style: 0.6218
+[Ep 3/100] [Batch 8300] Loss_G: 9.1493 | LAB_Style: 2.8697
+[Ep 3/100] [Batch 8400] Loss_G: 7.1734 | LAB_Style: 1.3370
+[Ep 3/100] [Batch 8500] Loss_G: 6.3682 | LAB_Style: 1.2301
+[Ep 3/100] [Batch 8600] Loss_G: 4.9000 | LAB_Style: 1.1272
+[Ep 3/100] [Batch 8700] Loss_G: 6.4361 | LAB_Style: 1.2261
+[Ep 3/100] [Batch 8800] Loss_G: 7.3429 | LAB_Style: 2.6383
+[Ep 3/100] [Batch 8900] Loss_G: 6.7812 | LAB_Style: 1.5908
+[Ep 3/100] [Batch 9000] Loss_G: 5.0465 | LAB_Style: 0.5507
+[Ep 3/100] [Batch 9100] Loss_G: 4.7034 | LAB_Style: 0.6366
+[Ep 3/100] [Batch 9200] Loss_G: 6.1695 | LAB_Style: 1.0326
+[Ep 3/100] [Batch 9300] Loss_G: 8.0564 | LAB_Style: 3.6325
+[Ep 3/100] [Batch 9400] Loss_G: 5.3395 | LAB_Style: 0.6391
+[Ep 3/100] [Batch 9500] Loss_G: 4.5537 | LAB_Style: 0.9353
+[Ep 3/100] [Batch 9600] Loss_G: 5.5076 | LAB_Style: 1.2496
+[Ep 3/100] [Batch 9700] Loss_G: 4.0223 | LAB_Style: 0.3898
+[Ep 3/100] [Batch 9800] Loss_G: 5.8050 | LAB_Style: 1.1387
+[Ep 3/100] [Batch 9900] Loss_G: 5.0428 | LAB_Style: 0.8187
+[Ep 3/100] [Batch 10000] Loss_G: 6.4010 | LAB_Style: 0.6854
+[Ep 3/100] [Batch 10100] Loss_G: 4.1613 | LAB_Style: 0.5145
+[Ep 3/100] [Batch 10200] Loss_G: 4.5964 | LAB_Style: 0.1642
+[Ep 3/100] [Batch 10300] Loss_G: 5.3877 | LAB_Style: 1.0618
+[Ep 3/100] [Batch 10400] Loss_G: 4.5941 | LAB_Style: 0.8042
+[Ep 3/100] [Batch 10500] Loss_G: 5.4591 | LAB_Style: 0.9954
+[Ep 3/100] [Batch 10600] Loss_G: 3.6154 | LAB_Style: 0.2243
+[Ep 3/100] [Batch 10700] Loss_G: 5.7551 | LAB_Style: 1.3790
+[Ep 3/100] [Batch 10800] Loss_G: 5.2409 | LAB_Style: 1.0443
+[Ep 3/100] [Batch 10900] Loss_G: 5.4617 | LAB_Style: 0.9642
+[Ep 3/100] [Batch 11000] Loss_G: 6.5155 | LAB_Style: 1.3601
+[Ep 3/100] [Batch 11100] Loss_G: 6.2404 | LAB_Style: 1.3509
+[Ep 3/100] [Batch 11200] Loss_G: 3.7928 | LAB_Style: 0.1620
+[Ep 3/100] [Batch 11300] Loss_G: 6.3181 | LAB_Style: 1.6606
+[Ep 3/100] [Batch 11400] Loss_G: 5.1282 | LAB_Style: 0.7511
+[Ep 3/100] [Batch 11500] Loss_G: 4.6395 | LAB_Style: 0.6191
+[Ep 3/100] [Batch 11600] Loss_G: 5.7714 | LAB_Style: 0.9673
+[Ep 3/100] [Batch 11700] Loss_G: 4.1634 | LAB_Style: 0.7253
+[Ep 3/100] [Batch 11800] Loss_G: 5.2184 | LAB_Style: 0.9846
+[Ep 3/100] [Batch 11900] Loss_G: 3.3918 | LAB_Style: 0.3323
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 3 FINISHED | Time: 9020s
+LOSSES    >> G: 4.8431 | Phase: 0.7498 | LAB_Style: 0.9943
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 25.10
+   SSIM : 0.9432
+   GSSIM: 0.9012
+   MAE  : 0.0387
+   LPIPS: 0.0436
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.13
+   SSIM : 0.3383
+   GSSIM: 0.1756
+   MAE  : 0.1180
+   LPIPS: 0.5662
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 105.14
+   KID  : 0.09323
+   IS   : 2.50
+=====================================================================================
+
+[Ep 4/100] [Batch 0] Loss_G: 4.1274 | LAB_Style: 0.4357
+[Ep 4/100] [Batch 100] Loss_G: 6.0199 | LAB_Style: 2.0148
+[Ep 4/100] [Batch 200] Loss_G: 5.3050 | LAB_Style: 1.1021
+[Ep 4/100] [Batch 300] Loss_G: 4.7161 | LAB_Style: 0.7731
+[Ep 4/100] [Batch 400] Loss_G: 6.1097 | LAB_Style: 1.1926
+[Ep 4/100] [Batch 500] Loss_G: 4.7783 | LAB_Style: 0.6644
+[Ep 4/100] [Batch 600] Loss_G: 6.2566 | LAB_Style: 2.2480
+[Ep 4/100] [Batch 700] Loss_G: 5.5971 | LAB_Style: 1.3066
+[Ep 4/100] [Batch 800] Loss_G: 5.3941 | LAB_Style: 1.5518
+[Ep 4/100] [Batch 900] Loss_G: 7.5081 | LAB_Style: 1.1432
+[Ep 4/100] [Batch 1000] Loss_G: 4.7662 | LAB_Style: 0.6130
+[Ep 4/100] [Batch 1100] Loss_G: 6.0200 | LAB_Style: 0.7453
+[Ep 4/100] [Batch 1200] Loss_G: 5.4923 | LAB_Style: 1.2975
+[Ep 4/100] [Batch 1300] Loss_G: 5.8006 | LAB_Style: 1.3455
+[Ep 4/100] [Batch 1400] Loss_G: 4.5330 | LAB_Style: 0.7323
+[Ep 4/100] [Batch 1500] Loss_G: 4.9190 | LAB_Style: 0.2776
+[Ep 4/100] [Batch 1600] Loss_G: 5.2964 | LAB_Style: 0.8363
+[Ep 4/100] [Batch 1700] Loss_G: 5.7785 | LAB_Style: 1.0700
+[Ep 4/100] [Batch 1800] Loss_G: 4.9894 | LAB_Style: 0.8897
+[Ep 4/100] [Batch 1900] Loss_G: 6.4336 | LAB_Style: 2.1481
+[Ep 4/100] [Batch 2000] Loss_G: 5.3486 | LAB_Style: 1.1642
+[Ep 4/100] [Batch 2100] Loss_G: 5.6295 | LAB_Style: 1.8030
+[Ep 4/100] [Batch 2200] Loss_G: 4.0415 | LAB_Style: 1.0398
+[Ep 4/100] [Batch 2300] Loss_G: 4.6214 | LAB_Style: 0.4600
+[Ep 4/100] [Batch 2400] Loss_G: 4.9407 | LAB_Style: 0.8813
+[Ep 4/100] [Batch 2500] Loss_G: 7.2697 | LAB_Style: 1.1073
+[Ep 4/100] [Batch 2600] Loss_G: 6.4307 | LAB_Style: 1.3189
+[Ep 4/100] [Batch 2700] Loss_G: 6.5228 | LAB_Style: 0.9873
+[Ep 4/100] [Batch 2800] Loss_G: 6.3395 | LAB_Style: 1.1342
+[Ep 4/100] [Batch 2900] Loss_G: 6.2241 | LAB_Style: 1.8262
+[Ep 4/100] [Batch 3000] Loss_G: 4.2606 | LAB_Style: 0.1618
+[Ep 4/100] [Batch 3100] Loss_G: 4.0908 | LAB_Style: 0.4729
+[Ep 4/100] [Batch 3200] Loss_G: 5.5002 | LAB_Style: 1.8069
+[Ep 4/100] [Batch 3300] Loss_G: 6.4366 | LAB_Style: 2.3579
+[Ep 4/100] [Batch 3400] Loss_G: 4.3118 | LAB_Style: 0.8854
+[Ep 4/100] [Batch 3500] Loss_G: 4.1438 | LAB_Style: 0.6030
+[Ep 4/100] [Batch 3600] Loss_G: 5.3522 | LAB_Style: 0.1860
+[Ep 4/100] [Batch 3700] Loss_G: 4.1087 | LAB_Style: 0.6700
+[Ep 4/100] [Batch 3800] Loss_G: 3.4980 | LAB_Style: 0.3372
+[Ep 4/100] [Batch 3900] Loss_G: 5.4081 | LAB_Style: 0.6953
+[Ep 4/100] [Batch 4000] Loss_G: 5.3995 | LAB_Style: 0.8821
+[Ep 4/100] [Batch 4100] Loss_G: 5.6266 | LAB_Style: 0.8253
+[Ep 4/100] [Batch 4200] Loss_G: 4.4994 | LAB_Style: 0.5213
+[Ep 4/100] [Batch 4300] Loss_G: 4.7689 | LAB_Style: 0.5340
+[Ep 4/100] [Batch 4400] Loss_G: 7.8111 | LAB_Style: 2.7209
+[Ep 4/100] [Batch 4500] Loss_G: 5.2953 | LAB_Style: 1.5444
+[Ep 4/100] [Batch 4600] Loss_G: 4.6038 | LAB_Style: 0.7545
+[Ep 4/100] [Batch 4700] Loss_G: 4.8816 | LAB_Style: 0.6363
+[Ep 4/100] [Batch 4800] Loss_G: 4.6076 | LAB_Style: 0.8627
+[Ep 4/100] [Batch 4900] Loss_G: 5.5892 | LAB_Style: 1.2405
+[Ep 4/100] [Batch 5000] Loss_G: 6.5887 | LAB_Style: 1.6822
+[Ep 4/100] [Batch 5100] Loss_G: 5.1942 | LAB_Style: 1.5868
+[Ep 4/100] [Batch 5200] Loss_G: 5.7935 | LAB_Style: 1.4207
+[Ep 4/100] [Batch 5300] Loss_G: 3.9139 | LAB_Style: 0.6516
+[Ep 4/100] [Batch 5400] Loss_G: 4.5635 | LAB_Style: 1.1173
+[Ep 4/100] [Batch 5500] Loss_G: 4.0521 | LAB_Style: 0.7757
+[Ep 4/100] [Batch 5600] Loss_G: 5.1429 | LAB_Style: 1.0907
+[Ep 4/100] [Batch 5700] Loss_G: 8.0698 | LAB_Style: 3.4765
+[Ep 4/100] [Batch 5800] Loss_G: 4.4779 | LAB_Style: 0.9439
+[Ep 4/100] [Batch 5900] Loss_G: 5.7832 | LAB_Style: 1.7470
+[Ep 4/100] [Batch 6000] Loss_G: 5.9305 | LAB_Style: 1.8726
+[Ep 4/100] [Batch 6100] Loss_G: 4.9162 | LAB_Style: 1.7618
+[Ep 4/100] [Batch 6200] Loss_G: 4.9347 | LAB_Style: 0.9302
+[Ep 4/100] [Batch 6300] Loss_G: 14.3379 | LAB_Style: 0.4856
+[Ep 4/100] [Batch 6400] Loss_G: 5.6872 | LAB_Style: 0.9049
+[Ep 4/100] [Batch 6500] Loss_G: 5.3822 | LAB_Style: 0.2011
+[Ep 4/100] [Batch 6600] Loss_G: 6.3753 | LAB_Style: 0.5978
+[Ep 4/100] [Batch 6700] Loss_G: 4.9961 | LAB_Style: 0.3738
+[Ep 4/100] [Batch 6800] Loss_G: 5.4872 | LAB_Style: 1.5128
+[Ep 4/100] [Batch 6900] Loss_G: 6.0812 | LAB_Style: 1.2341
+[Ep 4/100] [Batch 7000] Loss_G: 5.6910 | LAB_Style: 0.8411
+[Ep 4/100] [Batch 7100] Loss_G: 4.9257 | LAB_Style: 0.6493
+[Ep 4/100] [Batch 7200] Loss_G: 6.2558 | LAB_Style: 1.3263
+[Ep 4/100] [Batch 7300] Loss_G: 4.4722 | LAB_Style: 0.5976
+[Ep 4/100] [Batch 7400] Loss_G: 4.0422 | LAB_Style: 0.4328
+[Ep 4/100] [Batch 7500] Loss_G: 4.9591 | LAB_Style: 1.0454
+[Ep 4/100] [Batch 7600] Loss_G: 8.2898 | LAB_Style: 3.0186
+[Ep 4/100] [Batch 7700] Loss_G: 4.8565 | LAB_Style: 0.9341
+[Ep 4/100] [Batch 7800] Loss_G: 5.4091 | LAB_Style: 0.7598
+[Ep 4/100] [Batch 7900] Loss_G: 5.0217 | LAB_Style: 1.0516
+[Ep 4/100] [Batch 8000] Loss_G: 5.6643 | LAB_Style: 1.1361
+[Ep 4/100] [Batch 8100] Loss_G: 5.8574 | LAB_Style: 1.3303
+[Ep 4/100] [Batch 8200] Loss_G: 5.3168 | LAB_Style: 0.8039
+[Ep 4/100] [Batch 8300] Loss_G: 4.2354 | LAB_Style: 0.9846
+[Ep 4/100] [Batch 8400] Loss_G: 4.2839 | LAB_Style: 0.4084
+[Ep 4/100] [Batch 8500] Loss_G: 5.1183 | LAB_Style: 0.7379
+[Ep 4/100] [Batch 8600] Loss_G: 5.1662 | LAB_Style: 0.9050
+[Ep 4/100] [Batch 8700] Loss_G: 4.3118 | LAB_Style: 0.6806
+[Ep 4/100] [Batch 8800] Loss_G: 5.5321 | LAB_Style: 0.7880
+[Ep 4/100] [Batch 8900] Loss_G: 4.8146 | LAB_Style: 1.2340
+[Ep 4/100] [Batch 9000] Loss_G: 5.4208 | LAB_Style: 0.8941
+[Ep 4/100] [Batch 9100] Loss_G: 4.8926 | LAB_Style: 1.0166
+[Ep 4/100] [Batch 9200] Loss_G: 5.2031 | LAB_Style: 0.7010
+[Ep 4/100] [Batch 9300] Loss_G: 5.3619 | LAB_Style: 1.2389
+[Ep 4/100] [Batch 9400] Loss_G: 5.1243 | LAB_Style: 1.1250
+[Ep 4/100] [Batch 9500] Loss_G: 4.7447 | LAB_Style: 0.6241
+[Ep 4/100] [Batch 9600] Loss_G: 4.8111 | LAB_Style: 0.7506
+[Ep 4/100] [Batch 9700] Loss_G: 4.3808 | LAB_Style: 0.8816
+[Ep 4/100] [Batch 9800] Loss_G: 4.4771 | LAB_Style: 0.9951
+[Ep 4/100] [Batch 9900] Loss_G: 5.1943 | LAB_Style: 1.2916
+[Ep 4/100] [Batch 10000] Loss_G: 4.6455 | LAB_Style: 0.7262
+[Ep 4/100] [Batch 10100] Loss_G: 4.3798 | LAB_Style: 0.5065
+[Ep 4/100] [Batch 10200] Loss_G: 4.0364 | LAB_Style: 0.5486
+[Ep 4/100] [Batch 10300] Loss_G: 7.0790 | LAB_Style: 1.8715
+[Ep 4/100] [Batch 10400] Loss_G: 4.6528 | LAB_Style: 1.0063
+[Ep 4/100] [Batch 10500] Loss_G: 4.4699 | LAB_Style: 0.9226
+[Ep 4/100] [Batch 10600] Loss_G: 5.8427 | LAB_Style: 1.1226
+[Ep 4/100] [Batch 10700] Loss_G: 4.9806 | LAB_Style: 1.5692
+[Ep 4/100] [Batch 10800] Loss_G: 4.3320 | LAB_Style: 0.6971
+[Ep 4/100] [Batch 10900] Loss_G: 6.7619 | LAB_Style: 1.9572
+[Ep 4/100] [Batch 11000] Loss_G: 5.2156 | LAB_Style: 1.6164
+[Ep 4/100] [Batch 11100] Loss_G: 3.7567 | LAB_Style: 0.3302
+[Ep 4/100] [Batch 11200] Loss_G: 4.9680 | LAB_Style: 0.7620
+[Ep 4/100] [Batch 11300] Loss_G: 5.5792 | LAB_Style: 0.5645
+[Ep 4/100] [Batch 11400] Loss_G: 4.9296 | LAB_Style: 1.3349
+[Ep 4/100] [Batch 11500] Loss_G: 5.1752 | LAB_Style: 0.8750
+[Ep 4/100] [Batch 11600] Loss_G: 4.4250 | LAB_Style: 0.8483
+[Ep 4/100] [Batch 11700] Loss_G: 3.3634 | LAB_Style: 0.2474
+[Ep 4/100] [Batch 11800] Loss_G: 5.4487 | LAB_Style: 1.0832
+[Ep 4/100] [Batch 11900] Loss_G: 4.8598 | LAB_Style: 0.7499
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 4 FINISHED | Time: 9019s
+LOSSES    >> G: 5.0400 | Phase: 0.7319 | LAB_Style: 0.3168
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 25.62
+   SSIM : 0.9486
+   GSSIM: 0.9064
+   MAE  : 0.0358
+   LPIPS: 0.0391
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.13
+   SSIM : 0.3410
+   GSSIM: 0.1756
+   MAE  : 0.1180
+   LPIPS: 0.5642
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 101.51
+   KID  : 0.09345
+   IS   : 2.51
+=====================================================================================
+
+[Ep 5/100] [Batch 0] Loss_G: 5.6090 | LAB_Style: 1.0963
+[Ep 5/100] [Batch 100] Loss_G: 4.2913 | LAB_Style: 0.5490
+[Ep 5/100] [Batch 200] Loss_G: 4.7260 | LAB_Style: 0.8681
+[Ep 5/100] [Batch 300] Loss_G: 3.9707 | LAB_Style: 0.3371
+[Ep 5/100] [Batch 400] Loss_G: 4.2251 | LAB_Style: 0.7926
+[Ep 5/100] [Batch 500] Loss_G: 4.6864 | LAB_Style: 0.9272
+[Ep 5/100] [Batch 600] Loss_G: 4.1228 | LAB_Style: 0.5003
+[Ep 5/100] [Batch 700] Loss_G: 5.4271 | LAB_Style: 1.0614
+[Ep 5/100] [Batch 800] Loss_G: 4.2024 | LAB_Style: 0.4954
+[Ep 5/100] [Batch 900] Loss_G: 3.8345 | LAB_Style: 0.6207
+[Ep 5/100] [Batch 1000] Loss_G: 3.2800 | LAB_Style: 0.2495
+[Ep 5/100] [Batch 1100] Loss_G: 5.0123 | LAB_Style: 0.7830
+[Ep 5/100] [Batch 1200] Loss_G: 5.3197 | LAB_Style: 1.2650
+[Ep 5/100] [Batch 1300] Loss_G: 4.3364 | LAB_Style: 0.7689
+[Ep 5/100] [Batch 1400] Loss_G: 6.1411 | LAB_Style: 1.2469
+[Ep 5/100] [Batch 1500] Loss_G: 3.8098 | LAB_Style: 0.8014
+[Ep 5/100] [Batch 1600] Loss_G: 4.2693 | LAB_Style: 0.4460
+[Ep 5/100] [Batch 1700] Loss_G: 5.5184 | LAB_Style: 1.5328
+[Ep 5/100] [Batch 1800] Loss_G: 4.9817 | LAB_Style: 1.0880
+[Ep 5/100] [Batch 1900] Loss_G: 4.0490 | LAB_Style: 0.2352
+[Ep 5/100] [Batch 2000] Loss_G: 9.2250 | LAB_Style: 3.1589
+[Ep 5/100] [Batch 2100] Loss_G: 4.8295 | LAB_Style: 0.3844
+[Ep 5/100] [Batch 2200] Loss_G: 4.2009 | LAB_Style: 1.0485
+[Ep 5/100] [Batch 2300] Loss_G: 4.8706 | LAB_Style: 0.8080
+[Ep 5/100] [Batch 2400] Loss_G: 4.4910 | LAB_Style: 0.9400
+[Ep 5/100] [Batch 2500] Loss_G: 6.8949 | LAB_Style: 1.7317
+[Ep 5/100] [Batch 2600] Loss_G: 5.6533 | LAB_Style: 1.2864
+[Ep 5/100] [Batch 2700] Loss_G: 4.3284 | LAB_Style: 0.3508
+[Ep 5/100] [Batch 2800] Loss_G: 5.4299 | LAB_Style: 1.0494
+[Ep 5/100] [Batch 2900] Loss_G: 4.5349 | LAB_Style: 0.5832
+[Ep 5/100] [Batch 3000] Loss_G: 4.5081 | LAB_Style: 0.7457
+[Ep 5/100] [Batch 3100] Loss_G: 6.4133 | LAB_Style: 1.4470
+[Ep 5/100] [Batch 3200] Loss_G: 5.1241 | LAB_Style: 1.5164
+[Ep 5/100] [Batch 3300] Loss_G: 5.1360 | LAB_Style: 0.9527
+[Ep 5/100] [Batch 3400] Loss_G: 4.7125 | LAB_Style: 0.8444
+[Ep 5/100] [Batch 3500] Loss_G: 4.6143 | LAB_Style: 0.6392
+[Ep 5/100] [Batch 3600] Loss_G: 4.5110 | LAB_Style: 0.6545
+[Ep 5/100] [Batch 3700] Loss_G: 5.0330 | LAB_Style: 1.4094
+[Ep 5/100] [Batch 3800] Loss_G: 5.4551 | LAB_Style: 1.3384
+[Ep 5/100] [Batch 3900] Loss_G: 4.3052 | LAB_Style: 0.6010
+[Ep 5/100] [Batch 4000] Loss_G: 5.1019 | LAB_Style: 1.1103
+[Ep 5/100] [Batch 4100] Loss_G: 4.3634 | LAB_Style: 0.4182
+[Ep 5/100] [Batch 4200] Loss_G: 5.4371 | LAB_Style: 1.9891
+[Ep 5/100] [Batch 4300] Loss_G: 4.8319 | LAB_Style: 0.9248
+[Ep 5/100] [Batch 4400] Loss_G: 4.5348 | LAB_Style: 0.4947
+[Ep 5/100] [Batch 4500] Loss_G: 4.7525 | LAB_Style: 1.1314
+[Ep 5/100] [Batch 4600] Loss_G: 5.3719 | LAB_Style: 1.5347
+[Ep 5/100] [Batch 4700] Loss_G: 5.0520 | LAB_Style: 0.9361
+[Ep 5/100] [Batch 4800] Loss_G: 4.3635 | LAB_Style: 1.2222
+[Ep 5/100] [Batch 4900] Loss_G: 5.3816 | LAB_Style: 1.0641
+[Ep 5/100] [Batch 5000] Loss_G: 4.1842 | LAB_Style: 0.8959
+[Ep 5/100] [Batch 5100] Loss_G: 5.0404 | LAB_Style: 1.3763
+[Ep 5/100] [Batch 5200] Loss_G: 5.6436 | LAB_Style: 1.0192
+[Ep 5/100] [Batch 5300] Loss_G: 6.1278 | LAB_Style: 1.4121
+[Ep 5/100] [Batch 5400] Loss_G: 4.9485 | LAB_Style: 0.8099
+[Ep 5/100] [Batch 5500] Loss_G: 5.1769 | LAB_Style: 1.2605
+[Ep 5/100] [Batch 5600] Loss_G: 4.9351 | LAB_Style: 0.5477
+[Ep 5/100] [Batch 5700] Loss_G: 5.0691 | LAB_Style: 0.6543
+[Ep 5/100] [Batch 5800] Loss_G: 6.2253 | LAB_Style: 1.8896
+[Ep 5/100] [Batch 5900] Loss_G: 4.8633 | LAB_Style: 0.7645
+[Ep 5/100] [Batch 6000] Loss_G: 5.3234 | LAB_Style: 0.7569
+[Ep 5/100] [Batch 6100] Loss_G: 4.7078 | LAB_Style: 0.7820
+[Ep 5/100] [Batch 6200] Loss_G: 8.1427 | LAB_Style: 2.9881
+[Ep 5/100] [Batch 6300] Loss_G: 4.5544 | LAB_Style: 0.6499
+[Ep 5/100] [Batch 6400] Loss_G: 4.8286 | LAB_Style: 0.9031
+[Ep 5/100] [Batch 6500] Loss_G: 7.4398 | LAB_Style: 2.3644
+[Ep 5/100] [Batch 6600] Loss_G: 3.6599 | LAB_Style: 0.2639
+[Ep 5/100] [Batch 6700] Loss_G: 4.7221 | LAB_Style: 0.8719
+[Ep 5/100] [Batch 6800] Loss_G: 4.8342 | LAB_Style: 0.8050
+[Ep 5/100] [Batch 6900] Loss_G: 5.2857 | LAB_Style: 1.3043
+[Ep 5/100] [Batch 7000] Loss_G: 5.6248 | LAB_Style: 0.8134
+[Ep 5/100] [Batch 7100] Loss_G: 5.9561 | LAB_Style: 1.3650
+[Ep 5/100] [Batch 7200] Loss_G: 5.0792 | LAB_Style: 1.2803
+[Ep 5/100] [Batch 7300] Loss_G: 5.4814 | LAB_Style: 0.6427
+[Ep 5/100] [Batch 7400] Loss_G: 8.2394 | LAB_Style: 2.6069
+[Ep 5/100] [Batch 7500] Loss_G: 4.3732 | LAB_Style: 0.5791
+[Ep 5/100] [Batch 7600] Loss_G: 4.4656 | LAB_Style: 0.9015
+[Ep 5/100] [Batch 7700] Loss_G: 4.6413 | LAB_Style: 0.7862
+[Ep 5/100] [Batch 7800] Loss_G: 4.5646 | LAB_Style: 0.6074
+[Ep 5/100] [Batch 7900] Loss_G: 5.2640 | LAB_Style: 0.7714
+[Ep 5/100] [Batch 8000] Loss_G: 4.2138 | LAB_Style: 0.4374
+[Ep 5/100] [Batch 8100] Loss_G: 5.0092 | LAB_Style: 1.2722
+[Ep 5/100] [Batch 8200] Loss_G: 4.6432 | LAB_Style: 0.4190
+[Ep 5/100] [Batch 8300] Loss_G: 3.8160 | LAB_Style: 0.6240
+[Ep 5/100] [Batch 8400] Loss_G: 4.3085 | LAB_Style: 0.8945
+[Ep 5/100] [Batch 8500] Loss_G: 4.6642 | LAB_Style: 0.9537
+[Ep 5/100] [Batch 8600] Loss_G: 4.7393 | LAB_Style: 0.6973
+[Ep 5/100] [Batch 8700] Loss_G: 4.2174 | LAB_Style: 0.5952
+[Ep 5/100] [Batch 8800] Loss_G: 5.8471 | LAB_Style: 1.8106
+[Ep 5/100] [Batch 8900] Loss_G: 3.8941 | LAB_Style: 0.3951
+[Ep 5/100] [Batch 9000] Loss_G: 4.8263 | LAB_Style: 1.2203
+[Ep 5/100] [Batch 9100] Loss_G: 5.9243 | LAB_Style: 1.2495
+[Ep 5/100] [Batch 9200] Loss_G: 5.8888 | LAB_Style: 1.2671
+[Ep 5/100] [Batch 9300] Loss_G: 3.9014 | LAB_Style: 0.8544
+[Ep 5/100] [Batch 9400] Loss_G: 4.9946 | LAB_Style: 1.2482
+[Ep 5/100] [Batch 9500] Loss_G: 4.4557 | LAB_Style: 0.7356
+[Ep 5/100] [Batch 9600] Loss_G: 4.3053 | LAB_Style: 0.2999
+[Ep 5/100] [Batch 9700] Loss_G: 5.9856 | LAB_Style: 1.8854
+[Ep 5/100] [Batch 9800] Loss_G: 4.8244 | LAB_Style: 0.8679
+[Ep 5/100] [Batch 9900] Loss_G: 5.9107 | LAB_Style: 1.6821
+[Ep 5/100] [Batch 10000] Loss_G: 4.3296 | LAB_Style: 1.2556
+[Ep 5/100] [Batch 10100] Loss_G: 4.1717 | LAB_Style: 0.7121
+[Ep 5/100] [Batch 10200] Loss_G: 4.6017 | LAB_Style: 0.4902
+[Ep 5/100] [Batch 10300] Loss_G: 4.1952 | LAB_Style: 1.2142
+[Ep 5/100] [Batch 10400] Loss_G: 4.8873 | LAB_Style: 0.5112
+[Ep 5/100] [Batch 10500] Loss_G: 5.6853 | LAB_Style: 0.8599
+[Ep 5/100] [Batch 10600] Loss_G: 4.4017 | LAB_Style: 0.4739
+[Ep 5/100] [Batch 10700] Loss_G: 3.7003 | LAB_Style: 0.5712
+[Ep 5/100] [Batch 10800] Loss_G: 3.8373 | LAB_Style: 0.4513
+[Ep 5/100] [Batch 10900] Loss_G: 6.8026 | LAB_Style: 2.1477
+[Ep 5/100] [Batch 11000] Loss_G: 6.0891 | LAB_Style: 1.1536
+[Ep 5/100] [Batch 11100] Loss_G: 5.2486 | LAB_Style: 2.0617
+[Ep 5/100] [Batch 11200] Loss_G: 3.8246 | LAB_Style: 0.4435
+[Ep 5/100] [Batch 11300] Loss_G: 4.8972 | LAB_Style: 0.4896
+[Ep 5/100] [Batch 11400] Loss_G: 5.2125 | LAB_Style: 1.3263
+[Ep 5/100] [Batch 11500] Loss_G: 4.3613 | LAB_Style: 0.7751
+[Ep 5/100] [Batch 11600] Loss_G: 5.1344 | LAB_Style: 1.1061
+[Ep 5/100] [Batch 11700] Loss_G: 4.5490 | LAB_Style: 0.6437
+[Ep 5/100] [Batch 11800] Loss_G: 5.1549 | LAB_Style: 1.0078
+[Ep 5/100] [Batch 11900] Loss_G: 5.6553 | LAB_Style: 1.1903
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 5 FINISHED | Time: 9018s
+LOSSES    >> G: 5.6357 | Phase: 0.7680 | LAB_Style: 1.7678
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.12
+   SSIM : 0.9533
+   GSSIM: 0.9137
+   MAE  : 0.0337
+   LPIPS: 0.0350
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.17
+   SSIM : 0.3482
+   GSSIM: 0.1772
+   MAE  : 0.1175
+   LPIPS: 0.5646
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 100.15
+   KID  : 0.09302
+   IS   : 2.50
+=====================================================================================
+
+[Ep 6/100] [Batch 0] Loss_G: 3.6619 | LAB_Style: 0.4072
+[Ep 6/100] [Batch 100] Loss_G: 4.7882 | LAB_Style: 0.9255
+[Ep 6/100] [Batch 200] Loss_G: 3.8726 | LAB_Style: 0.5239
+[Ep 6/100] [Batch 300] Loss_G: 4.5836 | LAB_Style: 0.9601
+[Ep 6/100] [Batch 400] Loss_G: 5.5474 | LAB_Style: 0.7089
+[Ep 6/100] [Batch 500] Loss_G: 4.3206 | LAB_Style: 0.6424
+[Ep 6/100] [Batch 600] Loss_G: 4.9446 | LAB_Style: 1.2514
+[Ep 6/100] [Batch 700] Loss_G: 4.6466 | LAB_Style: 0.8770
+[Ep 6/100] [Batch 800] Loss_G: 4.6807 | LAB_Style: 0.2332
+[Ep 6/100] [Batch 900] Loss_G: 4.8171 | LAB_Style: 1.0435
+[Ep 6/100] [Batch 1000] Loss_G: 4.6484 | LAB_Style: 0.7752
+[Ep 6/100] [Batch 1100] Loss_G: 4.6907 | LAB_Style: 1.3588
+[Ep 6/100] [Batch 1200] Loss_G: 6.1687 | LAB_Style: 1.1645
+[Ep 6/100] [Batch 1300] Loss_G: 5.6931 | LAB_Style: 1.7969
+[Ep 6/100] [Batch 1400] Loss_G: 4.7118 | LAB_Style: 0.8694
+[Ep 6/100] [Batch 1500] Loss_G: 5.5491 | LAB_Style: 2.0281
+[Ep 6/100] [Batch 1600] Loss_G: 5.9074 | LAB_Style: 1.9474
+[Ep 6/100] [Batch 1700] Loss_G: 5.7128 | LAB_Style: 1.1332
+[Ep 6/100] [Batch 1800] Loss_G: 5.0743 | LAB_Style: 0.7065
+[Ep 6/100] [Batch 1900] Loss_G: 5.0387 | LAB_Style: 1.0239
+[Ep 6/100] [Batch 2000] Loss_G: 4.2863 | LAB_Style: 0.4241
+[Ep 6/100] [Batch 2100] Loss_G: 5.9586 | LAB_Style: 1.5820
+[Ep 6/100] [Batch 2200] Loss_G: 4.9935 | LAB_Style: 1.0950
+[Ep 6/100] [Batch 2300] Loss_G: 4.6995 | LAB_Style: 0.8674
+[Ep 6/100] [Batch 2400] Loss_G: 7.4227 | LAB_Style: 1.7674
+[Ep 6/100] [Batch 2500] Loss_G: 4.9353 | LAB_Style: 0.7768
+[Ep 6/100] [Batch 2600] Loss_G: 3.9310 | LAB_Style: 0.5619
+[Ep 6/100] [Batch 2700] Loss_G: 5.1856 | LAB_Style: 1.4251
+[Ep 6/100] [Batch 2800] Loss_G: 5.3636 | LAB_Style: 1.3295
+[Ep 6/100] [Batch 2900] Loss_G: 4.2168 | LAB_Style: 0.5691
+[Ep 6/100] [Batch 3000] Loss_G: 7.1154 | LAB_Style: 1.4919
+[Ep 6/100] [Batch 3100] Loss_G: 5.1394 | LAB_Style: 1.0999
+[Ep 6/100] [Batch 3200] Loss_G: 3.7003 | LAB_Style: 0.2010
+[Ep 6/100] [Batch 3300] Loss_G: 4.5869 | LAB_Style: 0.8322
+[Ep 6/100] [Batch 3400] Loss_G: 3.4478 | LAB_Style: 0.4188
+[Ep 6/100] [Batch 3500] Loss_G: 4.3026 | LAB_Style: 0.6107
+[Ep 6/100] [Batch 3600] Loss_G: 5.0357 | LAB_Style: 0.8004
+[Ep 6/100] [Batch 3700] Loss_G: 4.4482 | LAB_Style: 1.0417
+[Ep 6/100] [Batch 3800] Loss_G: 4.8014 | LAB_Style: 1.6980
+[Ep 6/100] [Batch 3900] Loss_G: 5.3326 | LAB_Style: 0.7549
+[Ep 6/100] [Batch 4000] Loss_G: 4.9410 | LAB_Style: 0.5148
+[Ep 6/100] [Batch 4100] Loss_G: 5.0053 | LAB_Style: 1.1228
+[Ep 6/100] [Batch 4200] Loss_G: 3.9268 | LAB_Style: 0.3008
+[Ep 6/100] [Batch 4300] Loss_G: 5.5833 | LAB_Style: 0.5754
+[Ep 6/100] [Batch 4400] Loss_G: 4.3581 | LAB_Style: 0.5401
+[Ep 6/100] [Batch 4500] Loss_G: 4.6218 | LAB_Style: 0.7688
+[Ep 6/100] [Batch 4600] Loss_G: 5.2563 | LAB_Style: 0.9088
+[Ep 6/100] [Batch 4700] Loss_G: 3.9937 | LAB_Style: 0.9963
+[Ep 6/100] [Batch 4800] Loss_G: 4.4401 | LAB_Style: 1.5627
+[Ep 6/100] [Batch 4900] Loss_G: 4.6940 | LAB_Style: 0.4618
+[Ep 6/100] [Batch 5000] Loss_G: 4.4688 | LAB_Style: 1.1347
+[Ep 6/100] [Batch 5100] Loss_G: 5.2297 | LAB_Style: 1.5633
+[Ep 6/100] [Batch 5200] Loss_G: 7.0509 | LAB_Style: 2.4462
+[Ep 6/100] [Batch 5300] Loss_G: 4.5458 | LAB_Style: 0.8698
+[Ep 6/100] [Batch 5400] Loss_G: 4.3236 | LAB_Style: 0.6183
+[Ep 6/100] [Batch 5500] Loss_G: 4.1059 | LAB_Style: 0.5252
+[Ep 6/100] [Batch 5600] Loss_G: 5.7821 | LAB_Style: 0.6854
+[Ep 6/100] [Batch 5700] Loss_G: 5.2379 | LAB_Style: 1.3102
+[Ep 6/100] [Batch 5800] Loss_G: 3.6262 | LAB_Style: 0.4900
+[Ep 6/100] [Batch 5900] Loss_G: 3.7184 | LAB_Style: 0.7964
+[Ep 6/100] [Batch 6000] Loss_G: 4.9998 | LAB_Style: 1.4319
+[Ep 6/100] [Batch 6100] Loss_G: 4.6507 | LAB_Style: 0.7126
+[Ep 6/100] [Batch 6200] Loss_G: 4.3895 | LAB_Style: 1.0467
+[Ep 6/100] [Batch 6300] Loss_G: 4.4471 | LAB_Style: 1.0702
+[Ep 6/100] [Batch 6400] Loss_G: 5.0521 | LAB_Style: 0.8775
+[Ep 6/100] [Batch 6500] Loss_G: 3.5824 | LAB_Style: 0.6212
+[Ep 6/100] [Batch 6600] Loss_G: 4.6488 | LAB_Style: 0.6782
+[Ep 6/100] [Batch 6700] Loss_G: 4.1473 | LAB_Style: 0.3761
+[Ep 6/100] [Batch 6800] Loss_G: 3.8580 | LAB_Style: 0.2336
+[Ep 6/100] [Batch 6900] Loss_G: 4.3374 | LAB_Style: 0.6062
+[Ep 6/100] [Batch 7000] Loss_G: 5.4073 | LAB_Style: 1.3462
+[Ep 6/100] [Batch 7100] Loss_G: 4.7759 | LAB_Style: 1.2351
+[Ep 6/100] [Batch 7200] Loss_G: 5.3677 | LAB_Style: 1.4409
+[Ep 6/100] [Batch 7300] Loss_G: 4.0532 | LAB_Style: 0.8997
+[Ep 6/100] [Batch 7400] Loss_G: 3.8919 | LAB_Style: 0.8035
+[Ep 6/100] [Batch 7500] Loss_G: 4.2390 | LAB_Style: 0.9448
+[Ep 6/100] [Batch 7600] Loss_G: 4.6653 | LAB_Style: 0.5611
+[Ep 6/100] [Batch 7700] Loss_G: 4.7058 | LAB_Style: 0.4532
+[Ep 6/100] [Batch 7800] Loss_G: 5.4542 | LAB_Style: 1.2556
+[Ep 6/100] [Batch 7900] Loss_G: 3.8797 | LAB_Style: 0.7548
+[Ep 6/100] [Batch 8000] Loss_G: 4.6380 | LAB_Style: 0.6200
+[Ep 6/100] [Batch 8100] Loss_G: 7.2355 | LAB_Style: 1.4128
+[Ep 6/100] [Batch 8200] Loss_G: 4.1601 | LAB_Style: 1.1308
+[Ep 6/100] [Batch 8300] Loss_G: 4.5995 | LAB_Style: 0.5884
+[Ep 6/100] [Batch 8400] Loss_G: 4.7262 | LAB_Style: 0.9765
+[Ep 6/100] [Batch 8500] Loss_G: 4.2666 | LAB_Style: 0.5512
+[Ep 6/100] [Batch 8600] Loss_G: 3.6492 | LAB_Style: 0.9456
+[Ep 6/100] [Batch 8700] Loss_G: 4.2868 | LAB_Style: 0.7295
+[Ep 6/100] [Batch 8800] Loss_G: 4.7616 | LAB_Style: 0.6843
+[Ep 6/100] [Batch 8900] Loss_G: 5.5619 | LAB_Style: 1.2093
+[Ep 6/100] [Batch 9000] Loss_G: 5.4740 | LAB_Style: 1.3892
+[Ep 6/100] [Batch 9100] Loss_G: 3.9039 | LAB_Style: 0.3419
+[Ep 6/100] [Batch 9200] Loss_G: 4.9005 | LAB_Style: 1.0452
+[Ep 6/100] [Batch 9300] Loss_G: 4.3385 | LAB_Style: 0.8648
+[Ep 6/100] [Batch 9400] Loss_G: 4.6075 | LAB_Style: 1.1182
+[Ep 6/100] [Batch 9500] Loss_G: 5.2144 | LAB_Style: 1.4558
+[Ep 6/100] [Batch 9600] Loss_G: 5.2793 | LAB_Style: 0.9049
+[Ep 6/100] [Batch 9700] Loss_G: 4.3515 | LAB_Style: 0.5455
+[Ep 6/100] [Batch 9800] Loss_G: 4.1146 | LAB_Style: 0.4322
+[Ep 6/100] [Batch 9900] Loss_G: 5.0468 | LAB_Style: 1.1946
+[Ep 6/100] [Batch 10000] Loss_G: 5.4675 | LAB_Style: 0.9437
+[Ep 6/100] [Batch 10100] Loss_G: 5.8705 | LAB_Style: 0.8488
+[Ep 6/100] [Batch 10200] Loss_G: 4.8078 | LAB_Style: 1.0121
+[Ep 6/100] [Batch 10300] Loss_G: 6.3932 | LAB_Style: 1.1346
+[Ep 6/100] [Batch 10400] Loss_G: 6.8739 | LAB_Style: 2.0745
+[Ep 6/100] [Batch 10500] Loss_G: 5.6656 | LAB_Style: 1.4535
+[Ep 6/100] [Batch 10600] Loss_G: 6.1458 | LAB_Style: 1.8186
+[Ep 6/100] [Batch 10700] Loss_G: 5.6415 | LAB_Style: 1.1986
+[Ep 6/100] [Batch 10800] Loss_G: 4.8421 | LAB_Style: 1.1119
+[Ep 6/100] [Batch 10900] Loss_G: 4.7352 | LAB_Style: 1.3162
+[Ep 6/100] [Batch 11000] Loss_G: 5.0979 | LAB_Style: 1.1328
+[Ep 6/100] [Batch 11100] Loss_G: 4.9242 | LAB_Style: 0.6697
+[Ep 6/100] [Batch 11200] Loss_G: 4.5021 | LAB_Style: 1.1991
+[Ep 6/100] [Batch 11300] Loss_G: 5.9643 | LAB_Style: 1.6331
+[Ep 6/100] [Batch 11400] Loss_G: 4.4517 | LAB_Style: 0.7115
+[Ep 6/100] [Batch 11500] Loss_G: 5.2653 | LAB_Style: 1.1412
+[Ep 6/100] [Batch 11600] Loss_G: 7.1562 | LAB_Style: 2.7784
+[Ep 6/100] [Batch 11700] Loss_G: 3.7786 | LAB_Style: 0.6476
+[Ep 6/100] [Batch 11800] Loss_G: 4.9281 | LAB_Style: 1.1098
+[Ep 6/100] [Batch 11900] Loss_G: 5.0275 | LAB_Style: 0.7807
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 6 FINISHED | Time: 9041s
+LOSSES    >> G: 4.9779 | Phase: 0.7351 | LAB_Style: 1.3649
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.68
+   SSIM : 0.9595
+   GSSIM: 0.9227
+   MAE  : 0.0313
+   LPIPS: 0.0308
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.19
+   SSIM : 0.3500
+   GSSIM: 0.1790
+   MAE  : 0.1168
+   LPIPS: 0.5625
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 97.34
+   KID  : 0.08981
+   IS   : 2.43
+=====================================================================================
+
+[Ep 7/100] [Batch 0] Loss_G: 4.2419 | LAB_Style: 0.6016
+[Ep 7/100] [Batch 100] Loss_G: 5.4603 | LAB_Style: 1.4195
+[Ep 7/100] [Batch 200] Loss_G: 4.7692 | LAB_Style: 0.9637
+[Ep 7/100] [Batch 300] Loss_G: 5.0324 | LAB_Style: 1.6908
+[Ep 7/100] [Batch 400] Loss_G: 4.5988 | LAB_Style: 0.3191
+[Ep 7/100] [Batch 500] Loss_G: 9.8399 | LAB_Style: 3.9030
+[Ep 7/100] [Batch 600] Loss_G: 5.3907 | LAB_Style: 1.0697
+[Ep 7/100] [Batch 700] Loss_G: 5.2840 | LAB_Style: 1.1934
+[Ep 7/100] [Batch 800] Loss_G: 5.3180 | LAB_Style: 1.0823
+[Ep 7/100] [Batch 900] Loss_G: 4.9802 | LAB_Style: 1.0015
+[Ep 7/100] [Batch 1000] Loss_G: 3.8105 | LAB_Style: 0.7714
+[Ep 7/100] [Batch 1100] Loss_G: 5.1360 | LAB_Style: 0.4174
+[Ep 7/100] [Batch 1200] Loss_G: 5.3633 | LAB_Style: 1.7598
+[Ep 7/100] [Batch 1300] Loss_G: 4.3388 | LAB_Style: 0.3411
+[Ep 7/100] [Batch 1400] Loss_G: 5.4222 | LAB_Style: 0.9347
+[Ep 7/100] [Batch 1500] Loss_G: 4.6527 | LAB_Style: 0.6710
+[Ep 7/100] [Batch 1600] Loss_G: 5.2213 | LAB_Style: 1.2633
+[Ep 7/100] [Batch 1700] Loss_G: 5.9973 | LAB_Style: 1.6811
+[Ep 7/100] [Batch 1800] Loss_G: 6.7425 | LAB_Style: 1.0113
+[Ep 7/100] [Batch 1900] Loss_G: 5.0312 | LAB_Style: 1.4038
+[Ep 7/100] [Batch 2000] Loss_G: 5.3433 | LAB_Style: 0.5034
+[Ep 7/100] [Batch 2100] Loss_G: 4.5579 | LAB_Style: 1.1955
+[Ep 7/100] [Batch 2200] Loss_G: 6.8395 | LAB_Style: 2.2725
+[Ep 7/100] [Batch 2300] Loss_G: 4.3928 | LAB_Style: 0.9187
+[Ep 7/100] [Batch 2400] Loss_G: 6.8917 | LAB_Style: 2.6967
+[Ep 7/100] [Batch 2500] Loss_G: 4.9671 | LAB_Style: 1.1561
+[Ep 7/100] [Batch 2600] Loss_G: 4.1260 | LAB_Style: 1.2255
+[Ep 7/100] [Batch 2700] Loss_G: 4.4363 | LAB_Style: 0.7796
+[Ep 7/100] [Batch 2800] Loss_G: 6.7267 | LAB_Style: 2.9666
+[Ep 7/100] [Batch 2900] Loss_G: 3.7771 | LAB_Style: 0.2831
+[Ep 7/100] [Batch 3000] Loss_G: 4.9986 | LAB_Style: 1.0599
+[Ep 7/100] [Batch 3100] Loss_G: 4.6892 | LAB_Style: 0.1973
+[Ep 7/100] [Batch 3200] Loss_G: 4.2218 | LAB_Style: 0.5729
+[Ep 7/100] [Batch 3300] Loss_G: 4.6371 | LAB_Style: 1.0685
+[Ep 7/100] [Batch 3400] Loss_G: 3.9108 | LAB_Style: 0.7953
+[Ep 7/100] [Batch 3500] Loss_G: 4.5059 | LAB_Style: 0.4354
+[Ep 7/100] [Batch 3600] Loss_G: 4.1894 | LAB_Style: 0.6770
+[Ep 7/100] [Batch 3700] Loss_G: 4.1784 | LAB_Style: 1.2871
+[Ep 7/100] [Batch 3800] Loss_G: 7.4457 | LAB_Style: 2.9114
+[Ep 7/100] [Batch 3900] Loss_G: 5.0670 | LAB_Style: 0.7916
+[Ep 7/100] [Batch 4000] Loss_G: 5.4975 | LAB_Style: 0.8753
+[Ep 7/100] [Batch 4100] Loss_G: 4.3316 | LAB_Style: 0.8854
+[Ep 7/100] [Batch 4200] Loss_G: 6.3422 | LAB_Style: 1.8348
+[Ep 7/100] [Batch 4300] Loss_G: 4.7515 | LAB_Style: 1.4042
+[Ep 7/100] [Batch 4400] Loss_G: 5.8693 | LAB_Style: 1.2204
+[Ep 7/100] [Batch 4500] Loss_G: 6.1075 | LAB_Style: 1.3328
+[Ep 7/100] [Batch 4600] Loss_G: 5.5144 | LAB_Style: 0.8848
+[Ep 7/100] [Batch 4700] Loss_G: 5.5858 | LAB_Style: 1.8815
+[Ep 7/100] [Batch 4800] Loss_G: 4.6828 | LAB_Style: 1.1495
+[Ep 7/100] [Batch 4900] Loss_G: 3.8674 | LAB_Style: 0.5955
+[Ep 7/100] [Batch 5000] Loss_G: 5.0143 | LAB_Style: 0.5036
+[Ep 7/100] [Batch 5100] Loss_G: 5.6826 | LAB_Style: 1.7130
+[Ep 7/100] [Batch 5200] Loss_G: 4.7348 | LAB_Style: 1.3689
+[Ep 7/100] [Batch 5300] Loss_G: 4.8697 | LAB_Style: 1.0063
+[Ep 7/100] [Batch 5400] Loss_G: 7.4869 | LAB_Style: 1.4370
+[Ep 7/100] [Batch 5500] Loss_G: 4.2587 | LAB_Style: 0.5270
+[Ep 7/100] [Batch 5600] Loss_G: 5.0747 | LAB_Style: 1.2617
+[Ep 7/100] [Batch 5700] Loss_G: 4.0891 | LAB_Style: 0.4817
+[Ep 7/100] [Batch 5800] Loss_G: 4.3897 | LAB_Style: 0.7101
+[Ep 7/100] [Batch 5900] Loss_G: 8.0698 | LAB_Style: 2.9079
+[Ep 7/100] [Batch 6000] Loss_G: 6.1331 | LAB_Style: 1.6973
+[Ep 7/100] [Batch 6100] Loss_G: 4.0172 | LAB_Style: 0.5105
+[Ep 7/100] [Batch 6200] Loss_G: 5.9302 | LAB_Style: 1.4261
+[Ep 7/100] [Batch 6300] Loss_G: 3.6162 | LAB_Style: 0.6749
+[Ep 7/100] [Batch 6400] Loss_G: 6.8841 | LAB_Style: 2.2810
+[Ep 7/100] [Batch 6500] Loss_G: 4.4643 | LAB_Style: 0.9391
+[Ep 7/100] [Batch 6600] Loss_G: 4.7750 | LAB_Style: 0.9138
+[Ep 7/100] [Batch 6700] Loss_G: 4.3155 | LAB_Style: 0.9709
+[Ep 7/100] [Batch 6800] Loss_G: 5.3489 | LAB_Style: 0.8910
+[Ep 7/100] [Batch 6900] Loss_G: 4.7648 | LAB_Style: 1.3191
+[Ep 7/100] [Batch 7000] Loss_G: 3.8620 | LAB_Style: 0.4086
+[Ep 7/100] [Batch 7100] Loss_G: 4.4201 | LAB_Style: 1.3884
+[Ep 7/100] [Batch 7200] Loss_G: 3.9832 | LAB_Style: 0.5557
+[Ep 7/100] [Batch 7300] Loss_G: 3.7789 | LAB_Style: 0.7016
+[Ep 7/100] [Batch 7400] Loss_G: 4.1195 | LAB_Style: 0.4385
+[Ep 7/100] [Batch 7500] Loss_G: 5.5590 | LAB_Style: 1.1811
+[Ep 7/100] [Batch 7600] Loss_G: 4.5552 | LAB_Style: 1.1200
+[Ep 7/100] [Batch 7700] Loss_G: 4.4411 | LAB_Style: 0.8057
+[Ep 7/100] [Batch 7800] Loss_G: 5.0231 | LAB_Style: 1.0605
+[Ep 7/100] [Batch 7900] Loss_G: 4.9312 | LAB_Style: 1.2482
+[Ep 7/100] [Batch 8000] Loss_G: 4.1405 | LAB_Style: 0.5093
+[Ep 7/100] [Batch 8100] Loss_G: 7.9965 | LAB_Style: 2.2630
+[Ep 7/100] [Batch 8200] Loss_G: 4.3381 | LAB_Style: 0.6314
+[Ep 7/100] [Batch 8300] Loss_G: 5.2475 | LAB_Style: 1.5621
+[Ep 7/100] [Batch 8400] Loss_G: 4.8116 | LAB_Style: 0.7521
+[Ep 7/100] [Batch 8500] Loss_G: 5.3193 | LAB_Style: 1.1950
+[Ep 7/100] [Batch 8600] Loss_G: 5.5029 | LAB_Style: 1.1008
+[Ep 7/100] [Batch 8700] Loss_G: 5.8742 | LAB_Style: 0.4357
+[Ep 7/100] [Batch 8800] Loss_G: 4.9578 | LAB_Style: 0.9698
+[Ep 7/100] [Batch 8900] Loss_G: 4.2891 | LAB_Style: 0.4251
+[Ep 7/100] [Batch 9000] Loss_G: 4.3510 | LAB_Style: 0.5191
+[Ep 7/100] [Batch 9100] Loss_G: 5.1805 | LAB_Style: 0.3003
+[Ep 7/100] [Batch 9200] Loss_G: 5.0146 | LAB_Style: 0.7474
+[Ep 7/100] [Batch 9300] Loss_G: 4.9419 | LAB_Style: 1.1772
+[Ep 7/100] [Batch 9400] Loss_G: 5.0814 | LAB_Style: 0.3238
+[Ep 7/100] [Batch 9500] Loss_G: 3.8270 | LAB_Style: 0.3133
+[Ep 7/100] [Batch 9600] Loss_G: 4.1674 | LAB_Style: 0.6057
+[Ep 7/100] [Batch 9700] Loss_G: 4.0524 | LAB_Style: 0.7559
+[Ep 7/100] [Batch 9800] Loss_G: 4.1735 | LAB_Style: 1.3944
+[Ep 7/100] [Batch 9900] Loss_G: 5.7207 | LAB_Style: 1.5943
+[Ep 7/100] [Batch 10000] Loss_G: 5.7903 | LAB_Style: 1.5334
+[Ep 7/100] [Batch 10100] Loss_G: 4.5203 | LAB_Style: 0.9738
+[Ep 7/100] [Batch 10200] Loss_G: 5.3709 | LAB_Style: 0.6904
+[Ep 7/100] [Batch 10300] Loss_G: 6.7273 | LAB_Style: 1.4532
+[Ep 7/100] [Batch 10400] Loss_G: 3.8069 | LAB_Style: 0.6223
+[Ep 7/100] [Batch 10500] Loss_G: 5.0328 | LAB_Style: 0.6270
+[Ep 7/100] [Batch 10600] Loss_G: 4.3441 | LAB_Style: 0.2981
+[Ep 7/100] [Batch 10700] Loss_G: 4.9428 | LAB_Style: 1.9844
+[Ep 7/100] [Batch 10800] Loss_G: 5.0307 | LAB_Style: 1.1877
+[Ep 7/100] [Batch 10900] Loss_G: 6.2256 | LAB_Style: 1.4128
+[Ep 7/100] [Batch 11000] Loss_G: 6.5956 | LAB_Style: 1.8655
+[Ep 7/100] [Batch 11100] Loss_G: 5.5367 | LAB_Style: 1.0514
+[Ep 7/100] [Batch 11200] Loss_G: 4.9229 | LAB_Style: 1.4106
+[Ep 7/100] [Batch 11300] Loss_G: 4.8754 | LAB_Style: 1.3151
+[Ep 7/100] [Batch 11400] Loss_G: 3.8704 | LAB_Style: 0.3262
+[Ep 7/100] [Batch 11500] Loss_G: 4.1852 | LAB_Style: 0.3250
+[Ep 7/100] [Batch 11600] Loss_G: 4.6517 | LAB_Style: 0.5611
+[Ep 7/100] [Batch 11700] Loss_G: 4.6609 | LAB_Style: 0.6544
+[Ep 7/100] [Batch 11800] Loss_G: 5.5524 | LAB_Style: 0.4924
+[Ep 7/100] [Batch 11900] Loss_G: 5.7785 | LAB_Style: 0.5309
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 7 FINISHED | Time: 9043s
+LOSSES    >> G: 7.1730 | Phase: 0.6800 | LAB_Style: 1.3845
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.60
+   SSIM : 0.9588
+   GSSIM: 0.9221
+   MAE  : 0.0313
+   LPIPS: 0.0314
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.20
+   SSIM : 0.3499
+   GSSIM: 0.1779
+   MAE  : 0.1171
+   LPIPS: 0.5628
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 92.14
+   KID  : 0.08555
+   IS   : 2.48
+=====================================================================================
+
+[Ep 8/100] [Batch 0] Loss_G: 4.1251 | LAB_Style: 0.2692
+[Ep 8/100] [Batch 100] Loss_G: 4.2228 | LAB_Style: 0.7031
+[Ep 8/100] [Batch 200] Loss_G: 4.9640 | LAB_Style: 1.2224
+[Ep 8/100] [Batch 300] Loss_G: 5.2870 | LAB_Style: 0.6647
+[Ep 8/100] [Batch 400] Loss_G: 4.5675 | LAB_Style: 0.3117
+[Ep 8/100] [Batch 500] Loss_G: 4.9808 | LAB_Style: 0.7341
+[Ep 8/100] [Batch 600] Loss_G: 4.3032 | LAB_Style: 0.7268
+[Ep 8/100] [Batch 700] Loss_G: 6.4521 | LAB_Style: 2.3592
+[Ep 8/100] [Batch 800] Loss_G: 4.7097 | LAB_Style: 1.1437
+[Ep 8/100] [Batch 900] Loss_G: 4.4408 | LAB_Style: 0.6182
+[Ep 8/100] [Batch 1000] Loss_G: 5.2934 | LAB_Style: 0.9205
+[Ep 8/100] [Batch 1100] Loss_G: 5.4620 | LAB_Style: 1.5037
+[Ep 8/100] [Batch 1200] Loss_G: 4.7836 | LAB_Style: 0.7583
+[Ep 8/100] [Batch 1300] Loss_G: 4.8356 | LAB_Style: 1.4191
+[Ep 8/100] [Batch 1400] Loss_G: 5.8796 | LAB_Style: 0.8949
+[Ep 8/100] [Batch 1500] Loss_G: 4.8246 | LAB_Style: 0.7301
+[Ep 8/100] [Batch 1600] Loss_G: 3.9968 | LAB_Style: 0.7083
+[Ep 8/100] [Batch 1700] Loss_G: 5.2078 | LAB_Style: 1.5779
+[Ep 8/100] [Batch 1800] Loss_G: 8.8755 | LAB_Style: 3.6747
+[Ep 8/100] [Batch 1900] Loss_G: 5.1078 | LAB_Style: 1.3395
+[Ep 8/100] [Batch 2000] Loss_G: 4.3053 | LAB_Style: 0.4916
+[Ep 8/100] [Batch 2100] Loss_G: 4.3539 | LAB_Style: 0.5561
+[Ep 8/100] [Batch 2200] Loss_G: 5.0226 | LAB_Style: 0.6080
+[Ep 8/100] [Batch 2300] Loss_G: 4.7508 | LAB_Style: 0.6426
+[Ep 8/100] [Batch 2400] Loss_G: 4.5608 | LAB_Style: 1.3685
+[Ep 8/100] [Batch 2500] Loss_G: 4.8623 | LAB_Style: 0.7365
+[Ep 8/100] [Batch 2600] Loss_G: 5.4106 | LAB_Style: 1.3170
+[Ep 8/100] [Batch 2700] Loss_G: 4.9866 | LAB_Style: 0.7324
+[Ep 8/100] [Batch 2800] Loss_G: 4.6752 | LAB_Style: 1.5265
+[Ep 8/100] [Batch 2900] Loss_G: 4.6049 | LAB_Style: 0.8726
+[Ep 8/100] [Batch 3000] Loss_G: 4.1738 | LAB_Style: 0.5318
+[Ep 8/100] [Batch 3100] Loss_G: 5.2720 | LAB_Style: 0.6587
+[Ep 8/100] [Batch 3200] Loss_G: 4.9254 | LAB_Style: 1.5777
+[Ep 8/100] [Batch 3300] Loss_G: 4.3498 | LAB_Style: 0.7865
+[Ep 8/100] [Batch 3400] Loss_G: 4.9685 | LAB_Style: 1.3291
+[Ep 8/100] [Batch 3500] Loss_G: 4.6242 | LAB_Style: 0.8182
+[Ep 8/100] [Batch 3600] Loss_G: 4.1396 | LAB_Style: 0.4388
+[Ep 8/100] [Batch 3700] Loss_G: 5.9280 | LAB_Style: 1.6456
+[Ep 8/100] [Batch 3800] Loss_G: 5.3853 | LAB_Style: 0.9895
+[Ep 8/100] [Batch 3900] Loss_G: 5.0569 | LAB_Style: 0.6561
+[Ep 8/100] [Batch 4000] Loss_G: 4.3883 | LAB_Style: 0.6201
+[Ep 8/100] [Batch 4100] Loss_G: 4.0898 | LAB_Style: 1.0911
+[Ep 8/100] [Batch 4200] Loss_G: 7.3472 | LAB_Style: 2.7623
+[Ep 8/100] [Batch 4300] Loss_G: 3.9988 | LAB_Style: 0.6741
+[Ep 8/100] [Batch 4400] Loss_G: 4.6265 | LAB_Style: 0.6443
+[Ep 8/100] [Batch 4500] Loss_G: 4.6090 | LAB_Style: 0.8429
+[Ep 8/100] [Batch 4600] Loss_G: 6.3349 | LAB_Style: 1.3702
+[Ep 8/100] [Batch 4700] Loss_G: 5.1025 | LAB_Style: 1.0322
+[Ep 8/100] [Batch 4800] Loss_G: 6.3229 | LAB_Style: 0.9872
+[Ep 8/100] [Batch 4900] Loss_G: 4.0844 | LAB_Style: 0.8445
+[Ep 8/100] [Batch 5000] Loss_G: 4.6105 | LAB_Style: 0.8265
+[Ep 8/100] [Batch 5100] Loss_G: 4.2584 | LAB_Style: 0.4993
+[Ep 8/100] [Batch 5200] Loss_G: 4.7746 | LAB_Style: 1.0255
+[Ep 8/100] [Batch 5300] Loss_G: 4.5682 | LAB_Style: 0.4238
+[Ep 8/100] [Batch 5400] Loss_G: 5.1390 | LAB_Style: 0.7938
+[Ep 8/100] [Batch 5500] Loss_G: 4.9765 | LAB_Style: 1.4143
+[Ep 8/100] [Batch 5600] Loss_G: 4.6904 | LAB_Style: 1.2010
+[Ep 8/100] [Batch 5700] Loss_G: 4.6388 | LAB_Style: 0.7584
+[Ep 8/100] [Batch 5800] Loss_G: 5.2766 | LAB_Style: 0.6615
+[Ep 8/100] [Batch 5900] Loss_G: 5.7670 | LAB_Style: 2.6005
+[Ep 8/100] [Batch 6000] Loss_G: 5.0402 | LAB_Style: 0.8947
+[Ep 8/100] [Batch 6100] Loss_G: 4.0780 | LAB_Style: 0.5439
+[Ep 8/100] [Batch 6200] Loss_G: 4.5162 | LAB_Style: 0.7108
+[Ep 8/100] [Batch 6300] Loss_G: 5.2594 | LAB_Style: 1.6373
+[Ep 8/100] [Batch 6400] Loss_G: 5.3764 | LAB_Style: 1.4311
+[Ep 8/100] [Batch 6500] Loss_G: 4.6097 | LAB_Style: 0.9839
+[Ep 8/100] [Batch 6600] Loss_G: 4.9656 | LAB_Style: 0.3285
+[Ep 8/100] [Batch 6700] Loss_G: 4.8907 | LAB_Style: 0.4507
+[Ep 8/100] [Batch 6800] Loss_G: 8.1713 | LAB_Style: 3.8876
+[Ep 8/100] [Batch 6900] Loss_G: 5.0986 | LAB_Style: 0.3753
+[Ep 8/100] [Batch 7000] Loss_G: 5.4787 | LAB_Style: 1.5555
+[Ep 8/100] [Batch 7100] Loss_G: 5.2284 | LAB_Style: 1.2403
+[Ep 8/100] [Batch 7200] Loss_G: 5.0104 | LAB_Style: 0.5917
+[Ep 8/100] [Batch 7300] Loss_G: 5.2410 | LAB_Style: 2.0151
+[Ep 8/100] [Batch 7400] Loss_G: 4.4845 | LAB_Style: 0.8082
+[Ep 8/100] [Batch 7500] Loss_G: 4.0638 | LAB_Style: 0.6794
+[Ep 8/100] [Batch 7600] Loss_G: 5.2539 | LAB_Style: 1.2239
+[Ep 8/100] [Batch 7700] Loss_G: 4.6540 | LAB_Style: 1.0126
+[Ep 8/100] [Batch 7800] Loss_G: 5.1716 | LAB_Style: 1.2630
+[Ep 8/100] [Batch 7900] Loss_G: 5.2327 | LAB_Style: 1.0381
+[Ep 8/100] [Batch 8000] Loss_G: 4.3268 | LAB_Style: 1.0036
+[Ep 8/100] [Batch 8100] Loss_G: 4.2353 | LAB_Style: 0.7798
+[Ep 8/100] [Batch 8200] Loss_G: 4.2590 | LAB_Style: 1.3024
+[Ep 8/100] [Batch 8300] Loss_G: 3.4676 | LAB_Style: 0.4946
+[Ep 8/100] [Batch 8400] Loss_G: 4.8339 | LAB_Style: 1.0686
+[Ep 8/100] [Batch 8500] Loss_G: 4.3010 | LAB_Style: 0.5309
+[Ep 8/100] [Batch 8600] Loss_G: 4.3745 | LAB_Style: 0.7509
+[Ep 8/100] [Batch 8700] Loss_G: 4.2470 | LAB_Style: 0.9922
+[Ep 8/100] [Batch 8800] Loss_G: 5.2617 | LAB_Style: 1.9265
+[Ep 8/100] [Batch 8900] Loss_G: 6.5600 | LAB_Style: 1.2983
+[Ep 8/100] [Batch 9000] Loss_G: 4.8584 | LAB_Style: 0.5260
+[Ep 8/100] [Batch 9100] Loss_G: 5.7204 | LAB_Style: 0.6786
+[Ep 8/100] [Batch 9200] Loss_G: 4.5327 | LAB_Style: 0.7637
+[Ep 8/100] [Batch 9300] Loss_G: 4.7647 | LAB_Style: 0.6717
+[Ep 8/100] [Batch 9400] Loss_G: 7.0528 | LAB_Style: 1.8465
+[Ep 8/100] [Batch 9500] Loss_G: 4.0891 | LAB_Style: 0.5856
+[Ep 8/100] [Batch 9600] Loss_G: 3.6422 | LAB_Style: 0.5851
+[Ep 8/100] [Batch 9700] Loss_G: 5.0912 | LAB_Style: 0.6440
+[Ep 8/100] [Batch 9800] Loss_G: 5.6398 | LAB_Style: 1.3030
+[Ep 8/100] [Batch 9900] Loss_G: 4.9300 | LAB_Style: 0.7886
+[Ep 8/100] [Batch 10000] Loss_G: 4.9438 | LAB_Style: 0.8618
+[Ep 8/100] [Batch 10100] Loss_G: 4.5022 | LAB_Style: 0.1335
+[Ep 8/100] [Batch 10200] Loss_G: 5.0653 | LAB_Style: 1.0916
+[Ep 8/100] [Batch 10300] Loss_G: 5.2614 | LAB_Style: 1.6099
+[Ep 8/100] [Batch 10400] Loss_G: 5.5168 | LAB_Style: 1.5315
+[Ep 8/100] [Batch 10500] Loss_G: 4.3961 | LAB_Style: 0.6721
+[Ep 8/100] [Batch 10600] Loss_G: 6.6075 | LAB_Style: 1.5442
+[Ep 8/100] [Batch 10700] Loss_G: 4.2561 | LAB_Style: 1.1966
+[Ep 8/100] [Batch 10800] Loss_G: 5.1378 | LAB_Style: 1.2018
+[Ep 8/100] [Batch 10900] Loss_G: 7.5141 | LAB_Style: 1.7735
+[Ep 8/100] [Batch 11000] Loss_G: 3.9082 | LAB_Style: 0.5635
+[Ep 8/100] [Batch 11100] Loss_G: 5.9783 | LAB_Style: 1.7149
+[Ep 8/100] [Batch 11200] Loss_G: 4.6947 | LAB_Style: 0.8377
+[Ep 8/100] [Batch 11300] Loss_G: 6.2617 | LAB_Style: 1.4457
+[Ep 8/100] [Batch 11400] Loss_G: 4.7871 | LAB_Style: 0.3867
+[Ep 8/100] [Batch 11500] Loss_G: 5.2866 | LAB_Style: 1.0298
+[Ep 8/100] [Batch 11600] Loss_G: 4.8932 | LAB_Style: 1.3169
+[Ep 8/100] [Batch 11700] Loss_G: 5.0813 | LAB_Style: 1.2409
+[Ep 8/100] [Batch 11800] Loss_G: 7.5420 | LAB_Style: 2.4440
+[Ep 8/100] [Batch 11900] Loss_G: 4.2907 | LAB_Style: 0.8760
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 8 FINISHED | Time: 9023s
+LOSSES    >> G: 4.7897 | Phase: 0.6846 | LAB_Style: 0.5758
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.76
+   SSIM : 0.9606
+   GSSIM: 0.9246
+   MAE  : 0.0305
+   LPIPS: 0.0304
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.16
+   SSIM : 0.3487
+   GSSIM: 0.1794
+   MAE  : 0.1176
+   LPIPS: 0.5621
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 91.01
+   KID  : 0.08419
+   IS   : 2.46
+=====================================================================================
+
+[Ep 9/100] [Batch 0] Loss_G: 7.7823 | LAB_Style: 3.1220
+[Ep 9/100] [Batch 100] Loss_G: 6.7210 | LAB_Style: 1.5894
+[Ep 9/100] [Batch 200] Loss_G: 4.5545 | LAB_Style: 0.9641
+[Ep 9/100] [Batch 300] Loss_G: 4.3026 | LAB_Style: 0.4414
+[Ep 9/100] [Batch 400] Loss_G: 5.6387 | LAB_Style: 0.9121
+[Ep 9/100] [Batch 500] Loss_G: 5.3117 | LAB_Style: 1.3538
+[Ep 9/100] [Batch 600] Loss_G: 5.6058 | LAB_Style: 1.5382
+[Ep 9/100] [Batch 700] Loss_G: 5.4730 | LAB_Style: 1.4101
+[Ep 9/100] [Batch 800] Loss_G: 3.9568 | LAB_Style: 0.4626
+[Ep 9/100] [Batch 900] Loss_G: 3.7730 | LAB_Style: 0.2092
+[Ep 9/100] [Batch 1000] Loss_G: 4.0738 | LAB_Style: 0.8340
+[Ep 9/100] [Batch 1100] Loss_G: 3.5713 | LAB_Style: 0.1713
+[Ep 9/100] [Batch 1200] Loss_G: 5.3338 | LAB_Style: 1.2240
+[Ep 9/100] [Batch 1300] Loss_G: 7.3447 | LAB_Style: 2.4569
+[Ep 9/100] [Batch 1400] Loss_G: 4.0180 | LAB_Style: 0.2599
+[Ep 9/100] [Batch 1500] Loss_G: 4.5751 | LAB_Style: 1.0460
+[Ep 9/100] [Batch 1600] Loss_G: 5.4675 | LAB_Style: 1.9674
+[Ep 9/100] [Batch 1700] Loss_G: 4.8960 | LAB_Style: 1.3326
+[Ep 9/100] [Batch 1800] Loss_G: 5.2490 | LAB_Style: 0.9251
+[Ep 9/100] [Batch 1900] Loss_G: 4.2534 | LAB_Style: 0.5093
+[Ep 9/100] [Batch 2000] Loss_G: 3.9150 | LAB_Style: 0.5402
+[Ep 9/100] [Batch 2100] Loss_G: 4.8187 | LAB_Style: 0.7222
+[Ep 9/100] [Batch 2200] Loss_G: 5.2045 | LAB_Style: 1.2879
+[Ep 9/100] [Batch 2300] Loss_G: 4.4209 | LAB_Style: 0.5498
+[Ep 9/100] [Batch 2400] Loss_G: 4.2223 | LAB_Style: 1.0052
+[Ep 9/100] [Batch 2500] Loss_G: 4.5501 | LAB_Style: 1.0893
+[Ep 9/100] [Batch 2600] Loss_G: 4.2741 | LAB_Style: 0.7116
+[Ep 9/100] [Batch 2700] Loss_G: 6.3955 | LAB_Style: 1.4491
+[Ep 9/100] [Batch 2800] Loss_G: 4.5095 | LAB_Style: 1.1123
+[Ep 9/100] [Batch 2900] Loss_G: 3.8681 | LAB_Style: 0.4116
+[Ep 9/100] [Batch 3000] Loss_G: 5.4169 | LAB_Style: 1.7881
+[Ep 9/100] [Batch 3100] Loss_G: 4.3922 | LAB_Style: 0.9333
+[Ep 9/100] [Batch 3200] Loss_G: 7.1732 | LAB_Style: 2.7892
+[Ep 9/100] [Batch 3300] Loss_G: 4.9386 | LAB_Style: 1.1548
+[Ep 9/100] [Batch 3400] Loss_G: 5.3943 | LAB_Style: 1.3773
+[Ep 9/100] [Batch 3500] Loss_G: 4.2335 | LAB_Style: 1.1236
+[Ep 9/100] [Batch 3600] Loss_G: 5.8676 | LAB_Style: 1.6135
+[Ep 9/100] [Batch 3700] Loss_G: 5.2809 | LAB_Style: 1.2721
+[Ep 9/100] [Batch 3800] Loss_G: 4.9947 | LAB_Style: 0.7942
+[Ep 9/100] [Batch 3900] Loss_G: 3.3077 | LAB_Style: 0.6797
+[Ep 9/100] [Batch 4000] Loss_G: 4.2471 | LAB_Style: 1.0069
+[Ep 9/100] [Batch 4100] Loss_G: 5.5228 | LAB_Style: 1.3386
+[Ep 9/100] [Batch 4200] Loss_G: 4.6372 | LAB_Style: 0.6556
+[Ep 9/100] [Batch 4300] Loss_G: 4.3536 | LAB_Style: 0.8325
+[Ep 9/100] [Batch 4400] Loss_G: 5.1874 | LAB_Style: 1.3980
+[Ep 9/100] [Batch 4500] Loss_G: 4.4998 | LAB_Style: 1.1393
+[Ep 9/100] [Batch 4600] Loss_G: 5.3693 | LAB_Style: 1.5524
+[Ep 9/100] [Batch 4700] Loss_G: 4.4104 | LAB_Style: 0.5548
+[Ep 9/100] [Batch 4800] Loss_G: 4.4970 | LAB_Style: 0.9651
+[Ep 9/100] [Batch 4900] Loss_G: 4.5075 | LAB_Style: 1.0767
+[Ep 9/100] [Batch 5000] Loss_G: 5.7833 | LAB_Style: 1.1687
+[Ep 9/100] [Batch 5100] Loss_G: 4.5544 | LAB_Style: 0.8383
+[Ep 9/100] [Batch 5200] Loss_G: 4.5995 | LAB_Style: 0.8715
+[Ep 9/100] [Batch 5300] Loss_G: 5.2238 | LAB_Style: 1.0252
+[Ep 9/100] [Batch 5400] Loss_G: 4.7250 | LAB_Style: 1.2115
+[Ep 9/100] [Batch 5500] Loss_G: 3.3970 | LAB_Style: 0.4432
+[Ep 9/100] [Batch 5600] Loss_G: 4.0793 | LAB_Style: 0.9242
+[Ep 9/100] [Batch 5700] Loss_G: 4.6210 | LAB_Style: 1.2317
+[Ep 9/100] [Batch 5800] Loss_G: 3.9656 | LAB_Style: 0.5642
+[Ep 9/100] [Batch 5900] Loss_G: 4.5399 | LAB_Style: 0.7625
+[Ep 9/100] [Batch 6000] Loss_G: 5.5517 | LAB_Style: 1.5611
+[Ep 9/100] [Batch 6100] Loss_G: 5.5309 | LAB_Style: 0.7210
+[Ep 9/100] [Batch 6200] Loss_G: 4.8770 | LAB_Style: 1.0751
+[Ep 9/100] [Batch 6300] Loss_G: 4.8707 | LAB_Style: 0.6040
+[Ep 9/100] [Batch 6400] Loss_G: 7.4148 | LAB_Style: 3.5338
+[Ep 9/100] [Batch 6500] Loss_G: 5.5555 | LAB_Style: 0.9327
+[Ep 9/100] [Batch 6600] Loss_G: 5.2006 | LAB_Style: 1.4977
+[Ep 9/100] [Batch 6700] Loss_G: 6.1239 | LAB_Style: 1.8083
+[Ep 9/100] [Batch 6800] Loss_G: 4.9638 | LAB_Style: 0.6911
+[Ep 9/100] [Batch 6900] Loss_G: 4.7341 | LAB_Style: 0.6554
+[Ep 9/100] [Batch 7000] Loss_G: 4.7427 | LAB_Style: 0.7095
+[Ep 9/100] [Batch 7100] Loss_G: 4.6903 | LAB_Style: 1.0059
+[Ep 9/100] [Batch 7200] Loss_G: 4.3042 | LAB_Style: 0.4689
+[Ep 9/100] [Batch 7300] Loss_G: 5.5837 | LAB_Style: 1.3645
+[Ep 9/100] [Batch 7400] Loss_G: 4.7239 | LAB_Style: 0.7030
+[Ep 9/100] [Batch 7500] Loss_G: 5.5907 | LAB_Style: 1.4135
+[Ep 9/100] [Batch 7600] Loss_G: 4.5843 | LAB_Style: 1.0693
+[Ep 9/100] [Batch 7700] Loss_G: 5.3306 | LAB_Style: 1.1740
+[Ep 9/100] [Batch 7800] Loss_G: 4.8958 | LAB_Style: 0.5587
+[Ep 9/100] [Batch 7900] Loss_G: 6.6780 | LAB_Style: 2.1820
+[Ep 9/100] [Batch 8000] Loss_G: 4.6229 | LAB_Style: 0.7219
+[Ep 9/100] [Batch 8100] Loss_G: 4.8871 | LAB_Style: 1.3285
+[Ep 9/100] [Batch 8200] Loss_G: 4.1360 | LAB_Style: 0.4745
+[Ep 9/100] [Batch 8300] Loss_G: 4.7420 | LAB_Style: 1.1204
+[Ep 9/100] [Batch 8400] Loss_G: 6.3196 | LAB_Style: 1.7441
+[Ep 9/100] [Batch 8500] Loss_G: 5.0695 | LAB_Style: 0.7006
+[Ep 9/100] [Batch 8600] Loss_G: 4.4555 | LAB_Style: 0.7824
+[Ep 9/100] [Batch 8700] Loss_G: 4.8710 | LAB_Style: 1.0924
+[Ep 9/100] [Batch 8800] Loss_G: 4.3382 | LAB_Style: 0.9388
+[Ep 9/100] [Batch 8900] Loss_G: 5.1416 | LAB_Style: 1.4284
+[Ep 9/100] [Batch 9000] Loss_G: 4.6550 | LAB_Style: 1.0782
+[Ep 9/100] [Batch 9100] Loss_G: 4.9969 | LAB_Style: 0.6698
+[Ep 9/100] [Batch 9200] Loss_G: 4.6669 | LAB_Style: 0.5721
+[Ep 9/100] [Batch 9300] Loss_G: 5.7270 | LAB_Style: 0.1956
+[Ep 9/100] [Batch 9400] Loss_G: 4.2842 | LAB_Style: 0.8536
+[Ep 9/100] [Batch 9500] Loss_G: 4.5468 | LAB_Style: 0.6002
+[Ep 9/100] [Batch 9600] Loss_G: 5.0403 | LAB_Style: 1.3001
+[Ep 9/100] [Batch 9700] Loss_G: 4.9164 | LAB_Style: 0.9673
+[Ep 9/100] [Batch 9800] Loss_G: 5.8662 | LAB_Style: 1.4380
+[Ep 9/100] [Batch 9900] Loss_G: 5.5416 | LAB_Style: 1.6775
+[Ep 9/100] [Batch 10000] Loss_G: 4.8496 | LAB_Style: 0.9711
+[Ep 9/100] [Batch 10100] Loss_G: 4.8365 | LAB_Style: 0.8848
+[Ep 9/100] [Batch 10200] Loss_G: 4.9116 | LAB_Style: 0.9563
+[Ep 9/100] [Batch 10300] Loss_G: 4.6705 | LAB_Style: 0.7007
+[Ep 9/100] [Batch 10400] Loss_G: 4.8002 | LAB_Style: 0.8202
+[Ep 9/100] [Batch 10500] Loss_G: 4.5939 | LAB_Style: 0.6673
+[Ep 9/100] [Batch 10600] Loss_G: 5.8719 | LAB_Style: 1.2061
+[Ep 9/100] [Batch 10700] Loss_G: 5.0311 | LAB_Style: 1.3352
+[Ep 9/100] [Batch 10800] Loss_G: 5.6695 | LAB_Style: 0.7931
+[Ep 9/100] [Batch 10900] Loss_G: 6.6934 | LAB_Style: 2.7497
+[Ep 9/100] [Batch 11000] Loss_G: 5.0655 | LAB_Style: 0.8407
+[Ep 9/100] [Batch 11100] Loss_G: 4.3022 | LAB_Style: 0.8513
+[Ep 9/100] [Batch 11200] Loss_G: 4.9989 | LAB_Style: 1.0517
+[Ep 9/100] [Batch 11300] Loss_G: 3.5876 | LAB_Style: 0.3460
+[Ep 9/100] [Batch 11400] Loss_G: 5.2262 | LAB_Style: 1.6182
+[Ep 9/100] [Batch 11500] Loss_G: 4.3610 | LAB_Style: 1.2304
+[Ep 9/100] [Batch 11600] Loss_G: 5.2535 | LAB_Style: 1.1471
+[Ep 9/100] [Batch 11700] Loss_G: 6.3444 | LAB_Style: 1.9390
+[Ep 9/100] [Batch 11800] Loss_G: 4.4400 | LAB_Style: 0.8528
+[Ep 9/100] [Batch 11900] Loss_G: 4.4514 | LAB_Style: 0.8910
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 9 FINISHED | Time: 9035s
+LOSSES    >> G: 3.7343 | Phase: 0.6695 | LAB_Style: 0.6668
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.98
+   SSIM : 0.9622
+   GSSIM: 0.9275
+   MAE  : 0.0298
+   LPIPS: 0.0294
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.18
+   SSIM : 0.3502
+   GSSIM: 0.1794
+   MAE  : 0.1176
+   LPIPS: 0.5619
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 90.55
+   KID  : 0.08714
+   IS   : 2.48
+=====================================================================================
+
+[Ep 10/100] [Batch 0] Loss_G: 4.2432 | LAB_Style: 0.6757
+[Ep 10/100] [Batch 100] Loss_G: 3.9306 | LAB_Style: 0.5861
+[Ep 10/100] [Batch 200] Loss_G: 4.8867 | LAB_Style: 0.6971
+[Ep 10/100] [Batch 300] Loss_G: 4.3595 | LAB_Style: 0.6806
+[Ep 10/100] [Batch 400] Loss_G: 4.7811 | LAB_Style: 0.7837
+[Ep 10/100] [Batch 500] Loss_G: 4.9788 | LAB_Style: 1.3813
+[Ep 10/100] [Batch 600] Loss_G: 5.1508 | LAB_Style: 1.1109
+[Ep 10/100] [Batch 700] Loss_G: 7.5817 | LAB_Style: 3.6382
+[Ep 10/100] [Batch 800] Loss_G: 4.0179 | LAB_Style: 0.8111
+[Ep 10/100] [Batch 900] Loss_G: 5.0284 | LAB_Style: 1.0684
+[Ep 10/100] [Batch 1000] Loss_G: 5.4055 | LAB_Style: 1.2757
+[Ep 10/100] [Batch 1100] Loss_G: 6.3306 | LAB_Style: 1.5095
+[Ep 10/100] [Batch 1200] Loss_G: 5.1026 | LAB_Style: 1.6355
+[Ep 10/100] [Batch 1300] Loss_G: 5.3535 | LAB_Style: 1.7931
+[Ep 10/100] [Batch 1400] Loss_G: 5.8883 | LAB_Style: 1.0347
+[Ep 10/100] [Batch 1500] Loss_G: 3.9128 | LAB_Style: 0.3497
+[Ep 10/100] [Batch 1600] Loss_G: 5.1386 | LAB_Style: 0.7564
+[Ep 10/100] [Batch 1700] Loss_G: 4.3680 | LAB_Style: 1.0114
+[Ep 10/100] [Batch 1800] Loss_G: 6.1103 | LAB_Style: 1.2200
+[Ep 10/100] [Batch 1900] Loss_G: 3.6833 | LAB_Style: 0.3318
+[Ep 10/100] [Batch 2000] Loss_G: 5.5442 | LAB_Style: 1.2357
+[Ep 10/100] [Batch 2100] Loss_G: 4.4499 | LAB_Style: 1.0889
+[Ep 10/100] [Batch 2200] Loss_G: 4.4731 | LAB_Style: 0.7357
+[Ep 10/100] [Batch 2300] Loss_G: 5.4295 | LAB_Style: 1.8235
+[Ep 10/100] [Batch 2400] Loss_G: 3.9252 | LAB_Style: 0.3750
+[Ep 10/100] [Batch 2500] Loss_G: 3.7129 | LAB_Style: 0.5993
+[Ep 10/100] [Batch 2600] Loss_G: 4.2670 | LAB_Style: 0.4174
+[Ep 10/100] [Batch 2700] Loss_G: 4.6785 | LAB_Style: 1.4028
+[Ep 10/100] [Batch 2800] Loss_G: 4.4252 | LAB_Style: 1.1509
+[Ep 10/100] [Batch 2900] Loss_G: 4.2144 | LAB_Style: 0.6612
+[Ep 10/100] [Batch 3000] Loss_G: 6.9263 | LAB_Style: 1.7151
+[Ep 10/100] [Batch 3100] Loss_G: 5.7133 | LAB_Style: 1.4484
+[Ep 10/100] [Batch 3200] Loss_G: 3.9966 | LAB_Style: 0.5102
+[Ep 10/100] [Batch 3300] Loss_G: 4.1523 | LAB_Style: 0.7099
+[Ep 10/100] [Batch 3400] Loss_G: 4.2516 | LAB_Style: 0.6438
+[Ep 10/100] [Batch 3500] Loss_G: 3.6944 | LAB_Style: 0.3468
+[Ep 10/100] [Batch 3600] Loss_G: 3.4744 | LAB_Style: 0.3554
+[Ep 10/100] [Batch 3700] Loss_G: 5.5899 | LAB_Style: 1.7468
+[Ep 10/100] [Batch 3800] Loss_G: 4.5392 | LAB_Style: 0.9302
+[Ep 10/100] [Batch 3900] Loss_G: 4.1112 | LAB_Style: 0.8114
+[Ep 10/100] [Batch 4000] Loss_G: 4.5236 | LAB_Style: 0.8487
+[Ep 10/100] [Batch 4100] Loss_G: 4.5147 | LAB_Style: 0.6318
+[Ep 10/100] [Batch 4200] Loss_G: 6.8933 | LAB_Style: 2.6956
+[Ep 10/100] [Batch 4300] Loss_G: 4.3411 | LAB_Style: 0.8414
+[Ep 10/100] [Batch 4400] Loss_G: 4.8655 | LAB_Style: 1.0679
+[Ep 10/100] [Batch 4500] Loss_G: 4.8874 | LAB_Style: 1.0214
+[Ep 10/100] [Batch 4600] Loss_G: 4.2577 | LAB_Style: 0.5572
+[Ep 10/100] [Batch 4700] Loss_G: 5.6206 | LAB_Style: 0.9939
+[Ep 10/100] [Batch 4800] Loss_G: 5.0438 | LAB_Style: 0.9860
+[Ep 10/100] [Batch 4900] Loss_G: 4.5788 | LAB_Style: 1.2756
+[Ep 10/100] [Batch 5000] Loss_G: 4.5926 | LAB_Style: 0.8184
+[Ep 10/100] [Batch 5100] Loss_G: 4.4112 | LAB_Style: 0.6503
+[Ep 10/100] [Batch 5200] Loss_G: 4.5229 | LAB_Style: 1.0288
+[Ep 10/100] [Batch 5300] Loss_G: 4.3363 | LAB_Style: 0.5096
+[Ep 10/100] [Batch 5400] Loss_G: 3.1572 | LAB_Style: 0.1428
+[Ep 10/100] [Batch 5500] Loss_G: 4.6085 | LAB_Style: 0.5233
+[Ep 10/100] [Batch 5600] Loss_G: 4.6200 | LAB_Style: 0.8480
+[Ep 10/100] [Batch 5700] Loss_G: 4.2721 | LAB_Style: 1.0630
+[Ep 10/100] [Batch 5800] Loss_G: 5.2219 | LAB_Style: 1.4143
+[Ep 10/100] [Batch 5900] Loss_G: 5.7543 | LAB_Style: 1.3967
+[Ep 10/100] [Batch 6000] Loss_G: 4.8308 | LAB_Style: 1.0604
+[Ep 10/100] [Batch 6100] Loss_G: 11.1712 | LAB_Style: 1.0037
+[Ep 10/100] [Batch 6200] Loss_G: 4.7737 | LAB_Style: 0.4690
+[Ep 10/100] [Batch 6300] Loss_G: 5.7730 | LAB_Style: 1.3838
+[Ep 10/100] [Batch 6400] Loss_G: 5.0803 | LAB_Style: 0.9508
+[Ep 10/100] [Batch 6500] Loss_G: 6.2306 | LAB_Style: 2.0446
+[Ep 10/100] [Batch 6600] Loss_G: 4.9808 | LAB_Style: 0.7669
+[Ep 10/100] [Batch 6700] Loss_G: 5.9383 | LAB_Style: 1.3651
+[Ep 10/100] [Batch 6800] Loss_G: 6.0709 | LAB_Style: 2.1316
+[Ep 10/100] [Batch 6900] Loss_G: 7.7267 | LAB_Style: 2.9272
+[Ep 10/100] [Batch 7000] Loss_G: 4.4434 | LAB_Style: 1.0425
+[Ep 10/100] [Batch 7100] Loss_G: 4.6163 | LAB_Style: 0.6859
+[Ep 10/100] [Batch 7200] Loss_G: 4.4328 | LAB_Style: 0.9320
+[Ep 10/100] [Batch 7300] Loss_G: 3.4889 | LAB_Style: 0.2795
+[Ep 10/100] [Batch 7400] Loss_G: 5.0359 | LAB_Style: 1.2160
+[Ep 10/100] [Batch 7500] Loss_G: 7.1369 | LAB_Style: 3.0398
+[Ep 10/100] [Batch 7600] Loss_G: 4.3755 | LAB_Style: 0.5852
+[Ep 10/100] [Batch 7700] Loss_G: 5.5207 | LAB_Style: 1.1817
+[Ep 10/100] [Batch 7800] Loss_G: 5.2268 | LAB_Style: 1.0408
+[Ep 10/100] [Batch 7900] Loss_G: 4.8157 | LAB_Style: 0.6336
+[Ep 10/100] [Batch 8000] Loss_G: 5.0099 | LAB_Style: 1.9141
+[Ep 10/100] [Batch 8100] Loss_G: 5.0518 | LAB_Style: 1.3403
+[Ep 10/100] [Batch 8200] Loss_G: 6.3406 | LAB_Style: 1.6884
+[Ep 10/100] [Batch 8300] Loss_G: 4.7996 | LAB_Style: 0.7837
+[Ep 10/100] [Batch 8400] Loss_G: 3.6922 | LAB_Style: 0.6669
+[Ep 10/100] [Batch 8500] Loss_G: 6.3189 | LAB_Style: 2.3776
+[Ep 10/100] [Batch 8600] Loss_G: 5.1520 | LAB_Style: 0.9267
+[Ep 10/100] [Batch 8700] Loss_G: 3.9187 | LAB_Style: 0.6663
+[Ep 10/100] [Batch 8800] Loss_G: 4.3635 | LAB_Style: 1.1861
+[Ep 10/100] [Batch 8900] Loss_G: 5.6117 | LAB_Style: 1.5024
+[Ep 10/100] [Batch 9000] Loss_G: 5.5871 | LAB_Style: 1.4153
+[Ep 10/100] [Batch 9100] Loss_G: 4.5382 | LAB_Style: 0.6919
+[Ep 10/100] [Batch 9200] Loss_G: 5.3883 | LAB_Style: 1.1502
+[Ep 10/100] [Batch 9300] Loss_G: 5.2601 | LAB_Style: 0.8866
+[Ep 10/100] [Batch 9400] Loss_G: 5.2306 | LAB_Style: 0.9729
+[Ep 10/100] [Batch 9500] Loss_G: 5.0609 | LAB_Style: 0.8721
+[Ep 10/100] [Batch 9600] Loss_G: 5.4492 | LAB_Style: 0.5982
+[Ep 10/100] [Batch 9700] Loss_G: 4.5286 | LAB_Style: 0.9672
+[Ep 10/100] [Batch 9800] Loss_G: 6.0103 | LAB_Style: 1.1932
+[Ep 10/100] [Batch 9900] Loss_G: 5.5070 | LAB_Style: 1.3307
+[Ep 10/100] [Batch 10000] Loss_G: 5.1654 | LAB_Style: 1.0051
+[Ep 10/100] [Batch 10100] Loss_G: 5.1531 | LAB_Style: 1.2997
+[Ep 10/100] [Batch 10200] Loss_G: 5.6139 | LAB_Style: 0.9651
+[Ep 10/100] [Batch 10300] Loss_G: 5.7101 | LAB_Style: 1.5808
+[Ep 10/100] [Batch 10400] Loss_G: 6.2842 | LAB_Style: 1.6785
+[Ep 10/100] [Batch 10500] Loss_G: 4.7481 | LAB_Style: 1.0169
+[Ep 10/100] [Batch 10600] Loss_G: 5.0751 | LAB_Style: 1.4510
+[Ep 10/100] [Batch 10700] Loss_G: 5.1167 | LAB_Style: 0.6195
+[Ep 10/100] [Batch 10800] Loss_G: 4.1515 | LAB_Style: 0.6249
+[Ep 10/100] [Batch 10900] Loss_G: 4.7530 | LAB_Style: 0.9775
+[Ep 10/100] [Batch 11000] Loss_G: 5.3832 | LAB_Style: 0.8955
+[Ep 10/100] [Batch 11100] Loss_G: 4.4760 | LAB_Style: 0.4606
+[Ep 10/100] [Batch 11200] Loss_G: 5.0068 | LAB_Style: 1.0990
+[Ep 10/100] [Batch 11300] Loss_G: 5.1409 | LAB_Style: 1.3560
+[Ep 10/100] [Batch 11400] Loss_G: 7.6672 | LAB_Style: 2.2877
+[Ep 10/100] [Batch 11500] Loss_G: 6.1965 | LAB_Style: 1.3286
+[Ep 10/100] [Batch 11600] Loss_G: 4.2997 | LAB_Style: 0.3769
+[Ep 10/100] [Batch 11700] Loss_G: 4.7177 | LAB_Style: 1.1749
+[Ep 10/100] [Batch 11800] Loss_G: 3.7134 | LAB_Style: 0.9060
+[Ep 10/100] [Batch 11900] Loss_G: 6.2716 | LAB_Style: 1.4765
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 10 FINISHED | Time: 9027s
+LOSSES    >> G: 4.9793 | Phase: 0.6624 | LAB_Style: 1.2989
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.87
+   SSIM : 0.9613
+   GSSIM: 0.9258
+   MAE  : 0.0301
+   LPIPS: 0.0298
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.17
+   SSIM : 0.3482
+   GSSIM: 0.1793
+   MAE  : 0.1177
+   LPIPS: 0.5631
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 83.90
+   KID  : 0.07686
+   IS   : 2.48
+=====================================================================================
+
+[Ep 11/100] [Batch 0] Loss_G: 4.2380 | LAB_Style: 0.4013
+[Ep 11/100] [Batch 100] Loss_G: 4.8360 | LAB_Style: 1.0953
+[Ep 11/100] [Batch 200] Loss_G: 3.6392 | LAB_Style: 0.5077
+[Ep 11/100] [Batch 300] Loss_G: 4.9393 | LAB_Style: 1.2943
+[Ep 11/100] [Batch 400] Loss_G: 4.6323 | LAB_Style: 0.6611
+[Ep 11/100] [Batch 500] Loss_G: 4.6988 | LAB_Style: 0.4407
+[Ep 11/100] [Batch 600] Loss_G: 5.3717 | LAB_Style: 1.2088
+[Ep 11/100] [Batch 700] Loss_G: 4.1473 | LAB_Style: 0.7379
+[Ep 11/100] [Batch 800] Loss_G: 4.5877 | LAB_Style: 1.2776
+[Ep 11/100] [Batch 900] Loss_G: 4.9805 | LAB_Style: 1.1208
+[Ep 11/100] [Batch 1000] Loss_G: 4.3881 | LAB_Style: 0.3792
+[Ep 11/100] [Batch 1100] Loss_G: 5.9274 | LAB_Style: 1.6952
+[Ep 11/100] [Batch 1200] Loss_G: 5.5738 | LAB_Style: 0.7878
+[Ep 11/100] [Batch 1300] Loss_G: 4.9064 | LAB_Style: 1.5454
+[Ep 11/100] [Batch 1400] Loss_G: 5.5448 | LAB_Style: 1.2389
+[Ep 11/100] [Batch 1500] Loss_G: 4.8744 | LAB_Style: 1.8591
+[Ep 11/100] [Batch 1600] Loss_G: 4.4218 | LAB_Style: 0.5335
+[Ep 11/100] [Batch 1700] Loss_G: 7.7222 | LAB_Style: 2.9515
+[Ep 11/100] [Batch 1800] Loss_G: 4.0442 | LAB_Style: 0.7025
+[Ep 11/100] [Batch 1900] Loss_G: 4.7359 | LAB_Style: 0.2653
+[Ep 11/100] [Batch 2000] Loss_G: 6.0122 | LAB_Style: 1.5334
+[Ep 11/100] [Batch 2100] Loss_G: 5.1769 | LAB_Style: 0.8063
+[Ep 11/100] [Batch 2200] Loss_G: 5.4466 | LAB_Style: 1.5256
+[Ep 11/100] [Batch 2300] Loss_G: 4.3632 | LAB_Style: 0.7432
+[Ep 11/100] [Batch 2400] Loss_G: 4.6530 | LAB_Style: 0.7808
+[Ep 11/100] [Batch 2500] Loss_G: 5.1203 | LAB_Style: 1.0259
+[Ep 11/100] [Batch 2600] Loss_G: 4.7867 | LAB_Style: 1.1274
+[Ep 11/100] [Batch 2700] Loss_G: 5.4404 | LAB_Style: 0.7082
+[Ep 11/100] [Batch 2800] Loss_G: 5.5508 | LAB_Style: 0.6279
+[Ep 11/100] [Batch 2900] Loss_G: 5.2274 | LAB_Style: 1.0332
+[Ep 11/100] [Batch 3000] Loss_G: 5.2710 | LAB_Style: 1.0087
+[Ep 11/100] [Batch 3100] Loss_G: 4.6705 | LAB_Style: 0.5727
+[Ep 11/100] [Batch 3200] Loss_G: 4.8656 | LAB_Style: 1.1190
+[Ep 11/100] [Batch 3300] Loss_G: 5.4733 | LAB_Style: 1.1200
+[Ep 11/100] [Batch 3400] Loss_G: 4.6552 | LAB_Style: 0.9106
+[Ep 11/100] [Batch 3500] Loss_G: 3.8717 | LAB_Style: 0.4469
+[Ep 11/100] [Batch 3600] Loss_G: 4.7165 | LAB_Style: 0.8476
+[Ep 11/100] [Batch 3700] Loss_G: 4.7742 | LAB_Style: 1.3928
+[Ep 11/100] [Batch 3800] Loss_G: 3.9426 | LAB_Style: 0.6945
+[Ep 11/100] [Batch 3900] Loss_G: 6.9056 | LAB_Style: 1.9459
+[Ep 11/100] [Batch 4000] Loss_G: 4.9425 | LAB_Style: 1.1086
+[Ep 11/100] [Batch 4100] Loss_G: 4.5643 | LAB_Style: 1.1031
+[Ep 11/100] [Batch 4200] Loss_G: 3.6002 | LAB_Style: 0.2773
+[Ep 11/100] [Batch 4300] Loss_G: 4.9783 | LAB_Style: 0.7335
+[Ep 11/100] [Batch 4400] Loss_G: 4.1282 | LAB_Style: 0.1665
+[Ep 11/100] [Batch 4500] Loss_G: 4.8714 | LAB_Style: 1.2320
+[Ep 11/100] [Batch 4600] Loss_G: 5.4793 | LAB_Style: 1.9507
+[Ep 11/100] [Batch 4700] Loss_G: 4.5548 | LAB_Style: 0.5354
+[Ep 11/100] [Batch 4800] Loss_G: 4.0090 | LAB_Style: 0.8660
+[Ep 11/100] [Batch 4900] Loss_G: 3.2745 | LAB_Style: 0.4467
+[Ep 11/100] [Batch 5000] Loss_G: 4.8628 | LAB_Style: 0.6912
+[Ep 11/100] [Batch 5100] Loss_G: 5.0121 | LAB_Style: 1.0218
+[Ep 11/100] [Batch 5200] Loss_G: 5.7006 | LAB_Style: 0.5589
+[Ep 11/100] [Batch 5300] Loss_G: 4.6355 | LAB_Style: 1.0647
+[Ep 11/100] [Batch 5400] Loss_G: 6.0205 | LAB_Style: 1.6260
+[Ep 11/100] [Batch 5500] Loss_G: 3.7839 | LAB_Style: 1.0544
+[Ep 11/100] [Batch 5600] Loss_G: 5.7804 | LAB_Style: 1.1796
+[Ep 11/100] [Batch 5700] Loss_G: 5.3271 | LAB_Style: 0.4328
+[Ep 11/100] [Batch 5800] Loss_G: 4.4655 | LAB_Style: 0.5692
+[Ep 11/100] [Batch 5900] Loss_G: 4.6532 | LAB_Style: 0.9099
+[Ep 11/100] [Batch 6000] Loss_G: 5.9718 | LAB_Style: 1.6633
+[Ep 11/100] [Batch 6100] Loss_G: 5.7673 | LAB_Style: 1.4023
+[Ep 11/100] [Batch 6200] Loss_G: 4.7924 | LAB_Style: 0.7685
+[Ep 11/100] [Batch 6300] Loss_G: 4.1988 | LAB_Style: 1.0365
+[Ep 11/100] [Batch 6400] Loss_G: 3.7410 | LAB_Style: 0.7971
+[Ep 11/100] [Batch 6500] Loss_G: 4.4432 | LAB_Style: 0.6036
+[Ep 11/100] [Batch 6600] Loss_G: 4.6205 | LAB_Style: 0.4734
+[Ep 11/100] [Batch 6700] Loss_G: 3.9971 | LAB_Style: 0.6755
+[Ep 11/100] [Batch 6800] Loss_G: 4.2851 | LAB_Style: 0.8036
+[Ep 11/100] [Batch 6900] Loss_G: 5.4887 | LAB_Style: 1.6634
+[Ep 11/100] [Batch 7000] Loss_G: 4.5292 | LAB_Style: 1.2086
+[Ep 11/100] [Batch 7100] Loss_G: 4.2558 | LAB_Style: 0.2856
+[Ep 11/100] [Batch 7200] Loss_G: 4.5118 | LAB_Style: 1.0389
+[Ep 11/100] [Batch 7300] Loss_G: 4.4347 | LAB_Style: 0.4685
+[Ep 11/100] [Batch 7400] Loss_G: 5.5755 | LAB_Style: 1.3970
+[Ep 11/100] [Batch 7500] Loss_G: 4.4666 | LAB_Style: 0.5959
+[Ep 11/100] [Batch 7600] Loss_G: 6.0509 | LAB_Style: 1.4566
+[Ep 11/100] [Batch 7700] Loss_G: 4.3626 | LAB_Style: 0.5558
+[Ep 11/100] [Batch 7800] Loss_G: 4.6398 | LAB_Style: 0.9495
+[Ep 11/100] [Batch 7900] Loss_G: 4.8523 | LAB_Style: 0.8571
+[Ep 11/100] [Batch 8000] Loss_G: 4.8422 | LAB_Style: 1.5325
+[Ep 11/100] [Batch 8100] Loss_G: 3.6106 | LAB_Style: 0.4924
+[Ep 11/100] [Batch 8200] Loss_G: 5.1780 | LAB_Style: 1.4622
+[Ep 11/100] [Batch 8300] Loss_G: 4.0716 | LAB_Style: 0.8574
+[Ep 11/100] [Batch 8400] Loss_G: 4.8300 | LAB_Style: 1.6227
+[Ep 11/100] [Batch 8500] Loss_G: 4.7739 | LAB_Style: 0.6061
+[Ep 11/100] [Batch 8600] Loss_G: 4.8159 | LAB_Style: 1.0632
+[Ep 11/100] [Batch 8700] Loss_G: 5.5973 | LAB_Style: 1.2447
+[Ep 11/100] [Batch 8800] Loss_G: 5.7790 | LAB_Style: 1.5857
+[Ep 11/100] [Batch 8900] Loss_G: 4.6553 | LAB_Style: 0.4525
+[Ep 11/100] [Batch 9000] Loss_G: 5.2410 | LAB_Style: 0.8786
+[Ep 11/100] [Batch 9100] Loss_G: 5.2421 | LAB_Style: 1.5086
+[Ep 11/100] [Batch 9200] Loss_G: 3.7573 | LAB_Style: 0.5836
+[Ep 11/100] [Batch 9300] Loss_G: 7.7275 | LAB_Style: 3.7628
+[Ep 11/100] [Batch 9400] Loss_G: 6.3824 | LAB_Style: 2.2529
+[Ep 11/100] [Batch 9500] Loss_G: 4.8303 | LAB_Style: 0.7120
+[Ep 11/100] [Batch 9600] Loss_G: 4.7346 | LAB_Style: 0.8584
+[Ep 11/100] [Batch 9700] Loss_G: 5.6277 | LAB_Style: 1.5335
+[Ep 11/100] [Batch 9800] Loss_G: 4.5672 | LAB_Style: 0.9412
+[Ep 11/100] [Batch 9900] Loss_G: 6.1530 | LAB_Style: 1.3296
+[Ep 11/100] [Batch 10000] Loss_G: 7.5236 | LAB_Style: 3.4045
+[Ep 11/100] [Batch 10100] Loss_G: 4.4682 | LAB_Style: 0.7005
+[Ep 11/100] [Batch 10200] Loss_G: 4.8021 | LAB_Style: 1.1948
+[Ep 11/100] [Batch 10300] Loss_G: 5.2713 | LAB_Style: 0.3734
+[Ep 11/100] [Batch 10400] Loss_G: 4.6509 | LAB_Style: 1.0746
+[Ep 11/100] [Batch 10500] Loss_G: 4.1093 | LAB_Style: 0.2412
+[Ep 11/100] [Batch 10600] Loss_G: 4.6245 | LAB_Style: 1.2830
+[Ep 11/100] [Batch 10700] Loss_G: 5.1368 | LAB_Style: 0.8371
+[Ep 11/100] [Batch 10800] Loss_G: 4.0975 | LAB_Style: 0.8143
+[Ep 11/100] [Batch 10900] Loss_G: 4.7807 | LAB_Style: 1.3002
+[Ep 11/100] [Batch 11000] Loss_G: 5.9159 | LAB_Style: 2.3931
+[Ep 11/100] [Batch 11100] Loss_G: 5.7592 | LAB_Style: 0.6921
+[Ep 11/100] [Batch 11200] Loss_G: 4.4601 | LAB_Style: 0.7588
+[Ep 11/100] [Batch 11300] Loss_G: 4.9588 | LAB_Style: 1.3576
+[Ep 11/100] [Batch 11400] Loss_G: 4.8729 | LAB_Style: 0.4459
+[Ep 11/100] [Batch 11500] Loss_G: 5.4775 | LAB_Style: 0.9933
+[Ep 11/100] [Batch 11600] Loss_G: 4.7382 | LAB_Style: 0.8024
+[Ep 11/100] [Batch 11700] Loss_G: 3.6260 | LAB_Style: 0.2062
+[Ep 11/100] [Batch 11800] Loss_G: 5.8712 | LAB_Style: 0.7939
+[Ep 11/100] [Batch 11900] Loss_G: 4.6957 | LAB_Style: 0.7896
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 11 FINISHED | Time: 9019s
+LOSSES    >> G: 5.4394 | Phase: 0.6984 | LAB_Style: 0.9402
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.88
+   SSIM : 0.9614
+   GSSIM: 0.9257
+   MAE  : 0.0301
+   LPIPS: 0.0304
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.19
+   SSIM : 0.3497
+   GSSIM: 0.1804
+   MAE  : 0.1175
+   LPIPS: 0.5617
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 82.56
+   KID  : 0.07272
+   IS   : 2.47
+=====================================================================================
+
+[Ep 12/100] [Batch 0] Loss_G: 4.9152 | LAB_Style: 1.2966
+[Ep 12/100] [Batch 100] Loss_G: 5.0195 | LAB_Style: 1.3286
+[Ep 12/100] [Batch 200] Loss_G: 5.5608 | LAB_Style: 1.5425
+[Ep 12/100] [Batch 300] Loss_G: 4.4206 | LAB_Style: 0.4099
+[Ep 12/100] [Batch 400] Loss_G: 4.3960 | LAB_Style: 0.7894
+[Ep 12/100] [Batch 500] Loss_G: 5.1745 | LAB_Style: 1.5670
+[Ep 12/100] [Batch 600] Loss_G: 5.2932 | LAB_Style: 0.9953
+[Ep 12/100] [Batch 700] Loss_G: 4.7646 | LAB_Style: 0.8688
+[Ep 12/100] [Batch 800] Loss_G: 4.8687 | LAB_Style: 1.0780
+[Ep 12/100] [Batch 900] Loss_G: 6.0546 | LAB_Style: 2.3289
+[Ep 12/100] [Batch 1000] Loss_G: 5.5724 | LAB_Style: 1.3477
+[Ep 12/100] [Batch 1100] Loss_G: 4.8364 | LAB_Style: 1.1078
+[Ep 12/100] [Batch 1200] Loss_G: 4.0650 | LAB_Style: 0.5169
+[Ep 12/100] [Batch 1300] Loss_G: 5.4630 | LAB_Style: 0.5667
+[Ep 12/100] [Batch 1400] Loss_G: 4.3234 | LAB_Style: 0.5318
+[Ep 12/100] [Batch 1500] Loss_G: 4.9644 | LAB_Style: 1.4622
+[Ep 12/100] [Batch 1600] Loss_G: 5.1506 | LAB_Style: 0.8796
+[Ep 12/100] [Batch 1700] Loss_G: 4.7415 | LAB_Style: 1.0395
+[Ep 12/100] [Batch 1800] Loss_G: 5.3413 | LAB_Style: 0.9943
+[Ep 12/100] [Batch 1900] Loss_G: 5.1968 | LAB_Style: 1.3431
+[Ep 12/100] [Batch 2000] Loss_G: 4.7732 | LAB_Style: 1.3101
+[Ep 12/100] [Batch 2100] Loss_G: 4.3953 | LAB_Style: 0.6364
+[Ep 12/100] [Batch 2200] Loss_G: 4.1559 | LAB_Style: 0.6962
+[Ep 12/100] [Batch 2300] Loss_G: 4.1882 | LAB_Style: 0.6432
+[Ep 12/100] [Batch 2400] Loss_G: 5.6435 | LAB_Style: 1.3021
+[Ep 12/100] [Batch 2500] Loss_G: 4.7058 | LAB_Style: 1.3685
+[Ep 12/100] [Batch 2600] Loss_G: 5.4300 | LAB_Style: 0.4573
+[Ep 12/100] [Batch 2700] Loss_G: 5.4381 | LAB_Style: 0.8958
+[Ep 12/100] [Batch 2800] Loss_G: 5.0114 | LAB_Style: 1.4763
+[Ep 12/100] [Batch 2900] Loss_G: 5.1595 | LAB_Style: 0.9420
+[Ep 12/100] [Batch 3000] Loss_G: 5.6933 | LAB_Style: 1.3754
+[Ep 12/100] [Batch 3100] Loss_G: 4.1598 | LAB_Style: 0.6782
+[Ep 12/100] [Batch 3200] Loss_G: 4.7691 | LAB_Style: 1.0001
+[Ep 12/100] [Batch 3300] Loss_G: 4.1797 | LAB_Style: 0.7561
+[Ep 12/100] [Batch 3400] Loss_G: 5.1427 | LAB_Style: 0.7452
+[Ep 12/100] [Batch 3500] Loss_G: 4.8510 | LAB_Style: 1.0165
+[Ep 12/100] [Batch 3600] Loss_G: 5.9094 | LAB_Style: 1.2310
+[Ep 12/100] [Batch 3700] Loss_G: 4.4675 | LAB_Style: 0.7222
+[Ep 12/100] [Batch 3800] Loss_G: 4.6776 | LAB_Style: 0.6785
+[Ep 12/100] [Batch 3900] Loss_G: 4.8927 | LAB_Style: 1.0020
+[Ep 12/100] [Batch 4000] Loss_G: 4.1761 | LAB_Style: 0.9115
+[Ep 12/100] [Batch 4100] Loss_G: 4.2827 | LAB_Style: 0.4383
+[Ep 12/100] [Batch 4200] Loss_G: 4.8167 | LAB_Style: 0.8371
+[Ep 12/100] [Batch 4300] Loss_G: 5.9106 | LAB_Style: 1.7168
+[Ep 12/100] [Batch 4400] Loss_G: 4.9597 | LAB_Style: 1.1879
+[Ep 12/100] [Batch 4500] Loss_G: 4.8210 | LAB_Style: 1.3952
+[Ep 12/100] [Batch 4600] Loss_G: 4.9535 | LAB_Style: 0.8623
+[Ep 12/100] [Batch 4700] Loss_G: 5.5751 | LAB_Style: 0.8525
+[Ep 12/100] [Batch 4800] Loss_G: 4.8894 | LAB_Style: 0.9069
+[Ep 12/100] [Batch 4900] Loss_G: 4.9106 | LAB_Style: 0.6893
+[Ep 12/100] [Batch 5000] Loss_G: 5.7145 | LAB_Style: 1.7693
+[Ep 12/100] [Batch 5100] Loss_G: 4.2007 | LAB_Style: 0.6051
+[Ep 12/100] [Batch 5200] Loss_G: 4.9011 | LAB_Style: 1.1381
+[Ep 12/100] [Batch 5300] Loss_G: 5.7912 | LAB_Style: 1.6417
+[Ep 12/100] [Batch 5400] Loss_G: 5.4465 | LAB_Style: 1.1879
+[Ep 12/100] [Batch 5500] Loss_G: 5.7915 | LAB_Style: 1.7912
+[Ep 12/100] [Batch 5600] Loss_G: 4.7805 | LAB_Style: 1.2532
+[Ep 12/100] [Batch 5700] Loss_G: 4.0194 | LAB_Style: 0.8743
+[Ep 12/100] [Batch 5800] Loss_G: 4.2064 | LAB_Style: 0.1981
+[Ep 12/100] [Batch 5900] Loss_G: 4.5875 | LAB_Style: 0.8524
+[Ep 12/100] [Batch 6000] Loss_G: 5.2446 | LAB_Style: 1.5666
+[Ep 12/100] [Batch 6100] Loss_G: 5.4929 | LAB_Style: 1.2971
+[Ep 12/100] [Batch 6200] Loss_G: 4.0520 | LAB_Style: 0.7947
+[Ep 12/100] [Batch 6300] Loss_G: 4.9350 | LAB_Style: 1.0474
+[Ep 12/100] [Batch 6400] Loss_G: 4.5490 | LAB_Style: 0.9314
+[Ep 12/100] [Batch 6500] Loss_G: 4.8768 | LAB_Style: 0.4815
+[Ep 12/100] [Batch 6600] Loss_G: 4.5738 | LAB_Style: 1.1819
+[Ep 12/100] [Batch 6700] Loss_G: 3.6870 | LAB_Style: 0.2063
+[Ep 12/100] [Batch 6800] Loss_G: 7.5026 | LAB_Style: 3.1882
+[Ep 12/100] [Batch 6900] Loss_G: 4.6957 | LAB_Style: 0.7896
+[Ep 12/100] [Batch 7000] Loss_G: 5.9586 | LAB_Style: 2.0439
+[Ep 12/100] [Batch 7100] Loss_G: 5.6435 | LAB_Style: 1.6592
+[Ep 12/100] [Batch 7200] Loss_G: 7.6429 | LAB_Style: 3.3617
+[Ep 12/100] [Batch 7300] Loss_G: 5.5936 | LAB_Style: 0.5304
+[Ep 12/100] [Batch 7400] Loss_G: 4.2575 | LAB_Style: 0.4851
+[Ep 12/100] [Batch 7500] Loss_G: 5.6354 | LAB_Style: 1.2635
+[Ep 12/100] [Batch 7600] Loss_G: 4.8780 | LAB_Style: 1.2769
+[Ep 12/100] [Batch 7700] Loss_G: 5.9956 | LAB_Style: 1.1631
+[Ep 12/100] [Batch 7800] Loss_G: 4.0571 | LAB_Style: 0.6831
+[Ep 12/100] [Batch 7900] Loss_G: 4.9372 | LAB_Style: 1.3260
+[Ep 12/100] [Batch 8000] Loss_G: 5.0598 | LAB_Style: 0.6810
+[Ep 12/100] [Batch 8100] Loss_G: 4.2117 | LAB_Style: 0.7842
+[Ep 12/100] [Batch 8200] Loss_G: 5.4295 | LAB_Style: 1.4161
+[Ep 12/100] [Batch 8300] Loss_G: 4.6565 | LAB_Style: 0.6379
+[Ep 12/100] [Batch 8400] Loss_G: 5.6240 | LAB_Style: 1.4496
+[Ep 12/100] [Batch 8500] Loss_G: 4.6555 | LAB_Style: 0.9566
+[Ep 12/100] [Batch 8600] Loss_G: 4.2956 | LAB_Style: 0.9416
+[Ep 12/100] [Batch 8700] Loss_G: 4.2014 | LAB_Style: 0.6091
+[Ep 12/100] [Batch 8800] Loss_G: 5.4732 | LAB_Style: 1.2246
+[Ep 12/100] [Batch 8900] Loss_G: 4.4782 | LAB_Style: 1.0743
+[Ep 12/100] [Batch 9000] Loss_G: 5.3917 | LAB_Style: 1.8593
+[Ep 12/100] [Batch 9100] Loss_G: 4.0901 | LAB_Style: 0.5902
+[Ep 12/100] [Batch 9200] Loss_G: 4.4348 | LAB_Style: 0.5334
+[Ep 12/100] [Batch 9300] Loss_G: 3.8910 | LAB_Style: 0.5428
+[Ep 12/100] [Batch 9400] Loss_G: 4.7197 | LAB_Style: 0.7728
+[Ep 12/100] [Batch 9500] Loss_G: 5.5496 | LAB_Style: 1.0473
+[Ep 12/100] [Batch 9600] Loss_G: 9.4971 | LAB_Style: 4.7144
+[Ep 12/100] [Batch 9700] Loss_G: 4.9568 | LAB_Style: 1.4171
+[Ep 12/100] [Batch 9800] Loss_G: 5.3155 | LAB_Style: 1.5125
+[Ep 12/100] [Batch 9900] Loss_G: 4.6143 | LAB_Style: 0.9033
+[Ep 12/100] [Batch 10000] Loss_G: 5.0469 | LAB_Style: 0.8959
+[Ep 12/100] [Batch 10100] Loss_G: 3.9161 | LAB_Style: 1.0415
+[Ep 12/100] [Batch 10200] Loss_G: 4.3818 | LAB_Style: 1.0867
+[Ep 12/100] [Batch 10300] Loss_G: 4.2756 | LAB_Style: 0.6046
+[Ep 12/100] [Batch 10400] Loss_G: 4.5318 | LAB_Style: 1.6019
+[Ep 12/100] [Batch 10500] Loss_G: 5.2925 | LAB_Style: 0.4412
+[Ep 12/100] [Batch 10600] Loss_G: 4.7290 | LAB_Style: 0.8573
+[Ep 12/100] [Batch 10700] Loss_G: 3.9474 | LAB_Style: 0.6611
+[Ep 12/100] [Batch 10800] Loss_G: 4.9876 | LAB_Style: 1.0211
+[Ep 12/100] [Batch 10900] Loss_G: 4.0084 | LAB_Style: 0.9644
+[Ep 12/100] [Batch 11000] Loss_G: 4.4838 | LAB_Style: 1.0633
+[Ep 12/100] [Batch 11100] Loss_G: 3.9193 | LAB_Style: 0.4881
+[Ep 12/100] [Batch 11200] Loss_G: 4.8517 | LAB_Style: 0.8350
+[Ep 12/100] [Batch 11300] Loss_G: 3.4735 | LAB_Style: 0.6811
+[Ep 12/100] [Batch 11400] Loss_G: 5.3050 | LAB_Style: 1.0365
+[Ep 12/100] [Batch 11500] Loss_G: 4.6464 | LAB_Style: 1.0576
+[Ep 12/100] [Batch 11600] Loss_G: 5.3533 | LAB_Style: 1.0098
+[Ep 12/100] [Batch 11700] Loss_G: 3.9549 | LAB_Style: 0.3411
+[Ep 12/100] [Batch 11800] Loss_G: 5.4728 | LAB_Style: 1.9224
+[Ep 12/100] [Batch 11900] Loss_G: 4.9451 | LAB_Style: 0.6354
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 12 FINISHED | Time: 9043s
+LOSSES    >> G: 5.7284 | Phase: 0.7432 | LAB_Style: 1.0575
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 27.05
+   SSIM : 0.9624
+   GSSIM: 0.9284
+   MAE  : 0.0296
+   LPIPS: 0.0295
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.18
+   SSIM : 0.3492
+   GSSIM: 0.1797
+   MAE  : 0.1175
+   LPIPS: 0.5633
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 81.28
+   KID  : 0.07641
+   IS   : 2.56
+=====================================================================================
+
+[Ep 13/100] [Batch 0] Loss_G: 5.4236 | LAB_Style: 1.0513
+[Ep 13/100] [Batch 100] Loss_G: 5.6932 | LAB_Style: 1.2515
+[Ep 13/100] [Batch 200] Loss_G: 4.9778 | LAB_Style: 0.5892
+[Ep 13/100] [Batch 300] Loss_G: 5.2884 | LAB_Style: 2.1205
+[Ep 13/100] [Batch 400] Loss_G: 4.4445 | LAB_Style: 0.5121
+[Ep 13/100] [Batch 500] Loss_G: 5.2028 | LAB_Style: 0.6105
+[Ep 13/100] [Batch 600] Loss_G: 5.9956 | LAB_Style: 2.2112
+[Ep 13/100] [Batch 700] Loss_G: 4.6686 | LAB_Style: 0.6190
+[Ep 13/100] [Batch 800] Loss_G: 4.3657 | LAB_Style: 0.6693
+[Ep 13/100] [Batch 900] Loss_G: 7.4040 | LAB_Style: 3.0795
+[Ep 13/100] [Batch 1000] Loss_G: 4.9954 | LAB_Style: 1.2433
+[Ep 13/100] [Batch 1100] Loss_G: 4.2884 | LAB_Style: 0.7549
+[Ep 13/100] [Batch 1200] Loss_G: 4.4287 | LAB_Style: 0.3847
+[Ep 13/100] [Batch 1300] Loss_G: 4.6167 | LAB_Style: 1.0065
+[Ep 13/100] [Batch 1400] Loss_G: 5.8582 | LAB_Style: 1.2761
+[Ep 13/100] [Batch 1500] Loss_G: 9.6539 | LAB_Style: 5.0555
+[Ep 13/100] [Batch 1600] Loss_G: 4.1043 | LAB_Style: 0.7311
+[Ep 13/100] [Batch 1700] Loss_G: 5.0653 | LAB_Style: 1.2558
+[Ep 13/100] [Batch 1800] Loss_G: 7.6260 | LAB_Style: 2.6170
+[Ep 13/100] [Batch 1900] Loss_G: 4.2629 | LAB_Style: 0.4193
+[Ep 13/100] [Batch 2000] Loss_G: 4.5389 | LAB_Style: 1.3722
+[Ep 13/100] [Batch 2100] Loss_G: 3.5574 | LAB_Style: 0.4046
+[Ep 13/100] [Batch 2200] Loss_G: 4.7265 | LAB_Style: 1.1595
+[Ep 13/100] [Batch 2300] Loss_G: 4.0351 | LAB_Style: 0.8599
+[Ep 13/100] [Batch 2400] Loss_G: 4.3690 | LAB_Style: 0.9771
+[Ep 13/100] [Batch 2500] Loss_G: 4.1284 | LAB_Style: 0.6249
+[Ep 13/100] [Batch 2600] Loss_G: 4.6641 | LAB_Style: 0.5357
+[Ep 13/100] [Batch 2700] Loss_G: 5.8590 | LAB_Style: 1.1806
+[Ep 13/100] [Batch 2800] Loss_G: 5.1621 | LAB_Style: 0.8537
+[Ep 13/100] [Batch 2900] Loss_G: 4.2213 | LAB_Style: 0.4759
+[Ep 13/100] [Batch 3000] Loss_G: 4.1863 | LAB_Style: 0.8019
+[Ep 13/100] [Batch 3100] Loss_G: 8.0670 | LAB_Style: 3.1803
+[Ep 13/100] [Batch 3200] Loss_G: 5.1911 | LAB_Style: 1.1718
+[Ep 13/100] [Batch 3300] Loss_G: 4.5937 | LAB_Style: 1.0414
+[Ep 13/100] [Batch 3400] Loss_G: 3.7897 | LAB_Style: 0.4467
+[Ep 13/100] [Batch 3500] Loss_G: 5.5286 | LAB_Style: 0.9563
+[Ep 13/100] [Batch 3600] Loss_G: 4.3040 | LAB_Style: 1.0955
+[Ep 13/100] [Batch 3700] Loss_G: 4.7260 | LAB_Style: 1.1753
+[Ep 13/100] [Batch 3800] Loss_G: 4.1232 | LAB_Style: 0.4874
+[Ep 13/100] [Batch 3900] Loss_G: 3.7362 | LAB_Style: 0.4141
+[Ep 13/100] [Batch 4000] Loss_G: 4.8743 | LAB_Style: 0.9755
+[Ep 13/100] [Batch 4100] Loss_G: 3.9990 | LAB_Style: 0.7582
+[Ep 13/100] [Batch 4200] Loss_G: 5.2043 | LAB_Style: 1.6094
+[Ep 13/100] [Batch 4300] Loss_G: 4.5939 | LAB_Style: 0.8795
+[Ep 13/100] [Batch 4400] Loss_G: 4.8294 | LAB_Style: 1.0274
+[Ep 13/100] [Batch 4500] Loss_G: 5.6477 | LAB_Style: 1.0642
+[Ep 13/100] [Batch 4600] Loss_G: 4.5746 | LAB_Style: 0.9147
+[Ep 13/100] [Batch 4700] Loss_G: 4.9950 | LAB_Style: 1.2048
+[Ep 13/100] [Batch 4800] Loss_G: 5.7313 | LAB_Style: 1.8969
+[Ep 13/100] [Batch 4900] Loss_G: 5.3148 | LAB_Style: 1.3076
+[Ep 13/100] [Batch 5000] Loss_G: 4.6983 | LAB_Style: 1.0521
+[Ep 13/100] [Batch 5100] Loss_G: 6.3671 | LAB_Style: 0.8170
+[Ep 13/100] [Batch 5200] Loss_G: 4.1123 | LAB_Style: 0.2446
+[Ep 13/100] [Batch 5300] Loss_G: 5.1320 | LAB_Style: 1.0269
+[Ep 13/100] [Batch 5400] Loss_G: 5.2576 | LAB_Style: 0.9620
+[Ep 13/100] [Batch 5500] Loss_G: 4.6289 | LAB_Style: 0.7139
+[Ep 13/100] [Batch 5600] Loss_G: 4.6231 | LAB_Style: 0.8985
+[Ep 13/100] [Batch 5700] Loss_G: 5.4381 | LAB_Style: 0.9237
+[Ep 13/100] [Batch 5800] Loss_G: 4.7408 | LAB_Style: 0.9119
+[Ep 13/100] [Batch 5900] Loss_G: 5.3769 | LAB_Style: 1.3246
+[Ep 13/100] [Batch 6000] Loss_G: 5.4333 | LAB_Style: 1.4886
+[Ep 13/100] [Batch 6100] Loss_G: 4.2871 | LAB_Style: 0.7562
+[Ep 13/100] [Batch 6200] Loss_G: 5.5102 | LAB_Style: 1.8636
+[Ep 13/100] [Batch 6300] Loss_G: 4.7055 | LAB_Style: 0.5814
+[Ep 13/100] [Batch 6400] Loss_G: 7.6367 | LAB_Style: 2.1011
+[Ep 13/100] [Batch 6500] Loss_G: 5.4498 | LAB_Style: 1.0002
+[Ep 13/100] [Batch 6600] Loss_G: 4.7277 | LAB_Style: 0.7767
+[Ep 13/100] [Batch 6700] Loss_G: 4.0721 | LAB_Style: 0.5593
+[Ep 13/100] [Batch 6800] Loss_G: 4.5757 | LAB_Style: 1.2128
+[Ep 13/100] [Batch 6900] Loss_G: 4.4570 | LAB_Style: 0.5696
+[Ep 13/100] [Batch 7000] Loss_G: 5.0685 | LAB_Style: 1.2316
+[Ep 13/100] [Batch 7100] Loss_G: 6.4286 | LAB_Style: 1.7313
+[Ep 13/100] [Batch 7200] Loss_G: 5.8943 | LAB_Style: 2.0201
+[Ep 13/100] [Batch 7300] Loss_G: 5.7079 | LAB_Style: 0.9295
+[Ep 13/100] [Batch 7400] Loss_G: 5.0473 | LAB_Style: 1.1679
+[Ep 13/100] [Batch 7500] Loss_G: 5.2884 | LAB_Style: 1.0829
+[Ep 13/100] [Batch 7600] Loss_G: 5.0940 | LAB_Style: 0.6518
+[Ep 13/100] [Batch 7700] Loss_G: 7.3040 | LAB_Style: 0.8733
+[Ep 13/100] [Batch 7800] Loss_G: 6.0568 | LAB_Style: 0.6894
+[Ep 13/100] [Batch 7900] Loss_G: 6.1081 | LAB_Style: 1.0535
+[Ep 13/100] [Batch 8000] Loss_G: 4.3506 | LAB_Style: 0.4816
+[Ep 13/100] [Batch 8100] Loss_G: 4.0922 | LAB_Style: 0.8692
+[Ep 13/100] [Batch 8200] Loss_G: 5.5121 | LAB_Style: 1.3777
+[Ep 13/100] [Batch 8300] Loss_G: 4.7430 | LAB_Style: 0.6789
+[Ep 13/100] [Batch 8400] Loss_G: 3.9166 | LAB_Style: 0.5983
+[Ep 13/100] [Batch 8500] Loss_G: 4.7592 | LAB_Style: 0.9613
+[Ep 13/100] [Batch 8600] Loss_G: 4.3151 | LAB_Style: 0.7521
+[Ep 13/100] [Batch 8700] Loss_G: 4.9165 | LAB_Style: 1.2848
+[Ep 13/100] [Batch 8800] Loss_G: 3.3334 | LAB_Style: 0.2869
+[Ep 13/100] [Batch 8900] Loss_G: 5.3657 | LAB_Style: 1.7204
+[Ep 13/100] [Batch 9000] Loss_G: 5.8507 | LAB_Style: 1.9171
+[Ep 13/100] [Batch 9100] Loss_G: 4.3363 | LAB_Style: 0.5758
+[Ep 13/100] [Batch 9200] Loss_G: 5.0011 | LAB_Style: 1.2983
+[Ep 13/100] [Batch 9300] Loss_G: 4.4982 | LAB_Style: 1.3400
+[Ep 13/100] [Batch 9400] Loss_G: 4.8747 | LAB_Style: 1.0340
+[Ep 13/100] [Batch 9500] Loss_G: 4.7600 | LAB_Style: 0.7351
+[Ep 13/100] [Batch 9600] Loss_G: 5.0819 | LAB_Style: 1.3372
+[Ep 13/100] [Batch 9700] Loss_G: 3.8994 | LAB_Style: 0.9247
+[Ep 13/100] [Batch 9800] Loss_G: 4.0592 | LAB_Style: 0.7304
+[Ep 13/100] [Batch 9900] Loss_G: 4.9300 | LAB_Style: 0.8790
+[Ep 13/100] [Batch 10000] Loss_G: 4.7978 | LAB_Style: 0.6009
+[Ep 13/100] [Batch 10100] Loss_G: 4.7331 | LAB_Style: 0.5307
+[Ep 13/100] [Batch 10200] Loss_G: 5.9097 | LAB_Style: 1.5025
+[Ep 13/100] [Batch 10300] Loss_G: 3.8731 | LAB_Style: 0.2635
+[Ep 13/100] [Batch 10400] Loss_G: 4.1332 | LAB_Style: 0.5259
+[Ep 13/100] [Batch 10500] Loss_G: 4.8029 | LAB_Style: 0.9140
+[Ep 13/100] [Batch 10600] Loss_G: 5.1403 | LAB_Style: 0.9773
+[Ep 13/100] [Batch 10700] Loss_G: 4.2907 | LAB_Style: 0.8490
+[Ep 13/100] [Batch 10800] Loss_G: 4.7815 | LAB_Style: 0.3324
+[Ep 13/100] [Batch 10900] Loss_G: 7.5067 | LAB_Style: 3.1851
+[Ep 13/100] [Batch 11000] Loss_G: 5.5638 | LAB_Style: 1.3955
+[Ep 13/100] [Batch 11100] Loss_G: 5.5235 | LAB_Style: 1.5660
+[Ep 13/100] [Batch 11200] Loss_G: 4.8487 | LAB_Style: 1.0781
+[Ep 13/100] [Batch 11300] Loss_G: 5.2052 | LAB_Style: 1.5492
+[Ep 13/100] [Batch 11400] Loss_G: 5.1251 | LAB_Style: 0.8668
+[Ep 13/100] [Batch 11500] Loss_G: 5.2934 | LAB_Style: 1.3443
+[Ep 13/100] [Batch 11600] Loss_G: 4.8668 | LAB_Style: 1.1410
+[Ep 13/100] [Batch 11700] Loss_G: 4.3881 | LAB_Style: 0.7516
+[Ep 13/100] [Batch 11800] Loss_G: 5.7402 | LAB_Style: 0.9315
+[Ep 13/100] [Batch 11900] Loss_G: 6.5761 | LAB_Style: 1.2544
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 13 FINISHED | Time: 9064s
+LOSSES    >> G: 4.7108 | Phase: 0.6775 | LAB_Style: 0.6176
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.85
+   SSIM : 0.9605
+   GSSIM: 0.9245
+   MAE  : 0.0303
+   LPIPS: 0.0308
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.20
+   SSIM : 0.3500
+   GSSIM: 0.1792
+   MAE  : 0.1175
+   LPIPS: 0.5630
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 80.22
+   KID  : 0.07445
+   IS   : 2.55
+=====================================================================================
+
+[Ep 14/100] [Batch 0] Loss_G: 4.4626 | LAB_Style: 0.7329
+[Ep 14/100] [Batch 100] Loss_G: 5.2503 | LAB_Style: 0.7440
+[Ep 14/100] [Batch 200] Loss_G: 5.6029 | LAB_Style: 1.3568
+[Ep 14/100] [Batch 300] Loss_G: 5.0355 | LAB_Style: 0.6429
+[Ep 14/100] [Batch 400] Loss_G: 4.1805 | LAB_Style: 0.7871
+[Ep 14/100] [Batch 500] Loss_G: 4.4849 | LAB_Style: 0.6571
+[Ep 14/100] [Batch 600] Loss_G: 5.7808 | LAB_Style: 1.3413
+[Ep 14/100] [Batch 700] Loss_G: 4.5139 | LAB_Style: 1.1419
+[Ep 14/100] [Batch 800] Loss_G: 3.7623 | LAB_Style: 0.4499
+[Ep 14/100] [Batch 900] Loss_G: 3.8668 | LAB_Style: 0.1338
+[Ep 14/100] [Batch 1000] Loss_G: 4.4094 | LAB_Style: 1.1975
+[Ep 14/100] [Batch 1100] Loss_G: 4.9186 | LAB_Style: 0.1807
+[Ep 14/100] [Batch 1200] Loss_G: 5.1214 | LAB_Style: 0.8526
+[Ep 14/100] [Batch 1300] Loss_G: 4.8179 | LAB_Style: 1.0930
+[Ep 14/100] [Batch 1400] Loss_G: 3.9852 | LAB_Style: 0.5590
+[Ep 14/100] [Batch 1500] Loss_G: 4.7119 | LAB_Style: 0.9604
+[Ep 14/100] [Batch 1600] Loss_G: 4.0937 | LAB_Style: 0.6401
+[Ep 14/100] [Batch 1700] Loss_G: 5.0236 | LAB_Style: 1.6270
+[Ep 14/100] [Batch 1800] Loss_G: 4.7925 | LAB_Style: 1.0715
+[Ep 14/100] [Batch 1900] Loss_G: 4.5094 | LAB_Style: 1.3141
+[Ep 14/100] [Batch 2000] Loss_G: 8.3324 | LAB_Style: 2.9404
+[Ep 14/100] [Batch 2100] Loss_G: 5.0384 | LAB_Style: 1.1337
+[Ep 14/100] [Batch 2200] Loss_G: 4.5489 | LAB_Style: 0.8388
+[Ep 14/100] [Batch 2300] Loss_G: 5.6743 | LAB_Style: 2.0170
+[Ep 14/100] [Batch 2400] Loss_G: 5.7684 | LAB_Style: 1.8713
+[Ep 14/100] [Batch 2500] Loss_G: 4.5852 | LAB_Style: 0.8644
+[Ep 14/100] [Batch 2600] Loss_G: 5.0197 | LAB_Style: 1.3240
+[Ep 14/100] [Batch 2700] Loss_G: 4.6557 | LAB_Style: 1.1408
+[Ep 14/100] [Batch 2800] Loss_G: 4.8067 | LAB_Style: 0.7899
+[Ep 14/100] [Batch 2900] Loss_G: 4.3242 | LAB_Style: 0.6866
+[Ep 14/100] [Batch 3000] Loss_G: 4.7719 | LAB_Style: 0.7292
+[Ep 14/100] [Batch 3100] Loss_G: 4.3186 | LAB_Style: 0.9406
+[Ep 14/100] [Batch 3200] Loss_G: 4.6278 | LAB_Style: 0.8234
+[Ep 14/100] [Batch 3300] Loss_G: 4.8531 | LAB_Style: 0.9330
+[Ep 14/100] [Batch 3400] Loss_G: 4.6054 | LAB_Style: 0.6435
+[Ep 14/100] [Batch 3500] Loss_G: 5.5600 | LAB_Style: 1.4301
+[Ep 14/100] [Batch 3600] Loss_G: 4.7412 | LAB_Style: 1.0840
+[Ep 14/100] [Batch 3700] Loss_G: 5.0441 | LAB_Style: 0.8821
+[Ep 14/100] [Batch 3800] Loss_G: 4.0912 | LAB_Style: 0.6186
+[Ep 14/100] [Batch 3900] Loss_G: 5.4806 | LAB_Style: 1.1913
+[Ep 14/100] [Batch 4000] Loss_G: 4.9337 | LAB_Style: 1.5185
+[Ep 14/100] [Batch 4100] Loss_G: 5.8869 | LAB_Style: 1.3648
+[Ep 14/100] [Batch 4200] Loss_G: 6.0272 | LAB_Style: 1.8412
+[Ep 14/100] [Batch 4300] Loss_G: 5.5106 | LAB_Style: 1.4206
+[Ep 14/100] [Batch 4400] Loss_G: 4.9513 | LAB_Style: 0.7033
+[Ep 14/100] [Batch 4500] Loss_G: 3.6165 | LAB_Style: 0.3746
+[Ep 14/100] [Batch 4600] Loss_G: 6.3469 | LAB_Style: 1.4981
+[Ep 14/100] [Batch 4700] Loss_G: 5.1048 | LAB_Style: 1.0931
+[Ep 14/100] [Batch 4800] Loss_G: 6.2681 | LAB_Style: 1.6874
+[Ep 14/100] [Batch 4900] Loss_G: 5.1939 | LAB_Style: 1.2186
+[Ep 14/100] [Batch 5000] Loss_G: 4.8598 | LAB_Style: 1.2022
+[Ep 14/100] [Batch 5100] Loss_G: 5.1534 | LAB_Style: 1.1061
+[Ep 14/100] [Batch 5200] Loss_G: 4.6049 | LAB_Style: 0.6037
+[Ep 14/100] [Batch 5300] Loss_G: 4.9368 | LAB_Style: 0.6780
+[Ep 14/100] [Batch 5400] Loss_G: 5.8367 | LAB_Style: 1.2676
+[Ep 14/100] [Batch 5500] Loss_G: 6.8135 | LAB_Style: 1.4530
+[Ep 14/100] [Batch 5600] Loss_G: 4.9809 | LAB_Style: 0.3031
+[Ep 14/100] [Batch 5700] Loss_G: 4.7546 | LAB_Style: 0.6963
+[Ep 14/100] [Batch 5800] Loss_G: 4.8572 | LAB_Style: 0.7246
+[Ep 14/100] [Batch 5900] Loss_G: 5.5371 | LAB_Style: 1.3088
+[Ep 14/100] [Batch 6000] Loss_G: 5.0803 | LAB_Style: 0.9895
+[Ep 14/100] [Batch 6100] Loss_G: 5.0976 | LAB_Style: 0.7300
+[Ep 14/100] [Batch 6200] Loss_G: 4.6089 | LAB_Style: 0.1343
+[Ep 14/100] [Batch 6300] Loss_G: 3.7387 | LAB_Style: 0.7548
+[Ep 14/100] [Batch 6400] Loss_G: 4.3434 | LAB_Style: 0.5914
+[Ep 14/100] [Batch 6500] Loss_G: 4.4237 | LAB_Style: 0.6011
+[Ep 14/100] [Batch 6600] Loss_G: 4.5482 | LAB_Style: 0.8637
+[Ep 14/100] [Batch 6700] Loss_G: 4.6343 | LAB_Style: 0.4247
+[Ep 14/100] [Batch 6800] Loss_G: 4.6239 | LAB_Style: 0.8130
+[Ep 14/100] [Batch 6900] Loss_G: 5.3979 | LAB_Style: 1.7735
+[Ep 14/100] [Batch 7000] Loss_G: 4.3116 | LAB_Style: 0.4578
+[Ep 14/100] [Batch 7100] Loss_G: 5.1613 | LAB_Style: 0.9815
+[Ep 14/100] [Batch 7200] Loss_G: 4.8943 | LAB_Style: 1.3859
+[Ep 14/100] [Batch 7300] Loss_G: 5.0486 | LAB_Style: 1.0711
+[Ep 14/100] [Batch 7400] Loss_G: 4.4264 | LAB_Style: 1.2523
+[Ep 14/100] [Batch 7500] Loss_G: 4.9651 | LAB_Style: 0.3879
+[Ep 14/100] [Batch 7600] Loss_G: 4.0134 | LAB_Style: 0.3151
+[Ep 14/100] [Batch 7700] Loss_G: 4.3525 | LAB_Style: 0.5416
+[Ep 14/100] [Batch 7800] Loss_G: 5.3629 | LAB_Style: 1.7993
+[Ep 14/100] [Batch 7900] Loss_G: 5.5602 | LAB_Style: 1.4171
+[Ep 14/100] [Batch 8000] Loss_G: 4.2685 | LAB_Style: 0.9002
+[Ep 14/100] [Batch 8100] Loss_G: 5.7652 | LAB_Style: 1.5483
+[Ep 14/100] [Batch 8200] Loss_G: 4.9326 | LAB_Style: 0.9958
+[Ep 14/100] [Batch 8300] Loss_G: 4.3787 | LAB_Style: 0.5878
+[Ep 14/100] [Batch 8400] Loss_G: 4.5965 | LAB_Style: 1.3193
+[Ep 14/100] [Batch 8500] Loss_G: 6.2749 | LAB_Style: 0.4814
+[Ep 14/100] [Batch 8600] Loss_G: 4.8037 | LAB_Style: 0.9205
+[Ep 14/100] [Batch 8700] Loss_G: 5.3458 | LAB_Style: 1.4091
+[Ep 14/100] [Batch 8800] Loss_G: 5.3622 | LAB_Style: 1.0791
+[Ep 14/100] [Batch 8900] Loss_G: 4.9900 | LAB_Style: 1.0571
+[Ep 14/100] [Batch 9000] Loss_G: 4.9253 | LAB_Style: 0.6136
+[Ep 14/100] [Batch 9100] Loss_G: 6.7441 | LAB_Style: 2.9115
+[Ep 14/100] [Batch 9200] Loss_G: 3.5422 | LAB_Style: 0.5311
+[Ep 14/100] [Batch 9300] Loss_G: 4.4241 | LAB_Style: 0.8044
+[Ep 14/100] [Batch 9400] Loss_G: 4.1403 | LAB_Style: 0.8054
+[Ep 14/100] [Batch 9500] Loss_G: 4.9305 | LAB_Style: 1.4277
+[Ep 14/100] [Batch 9600] Loss_G: 5.2892 | LAB_Style: 1.4031
+[Ep 14/100] [Batch 9700] Loss_G: 5.2676 | LAB_Style: 1.1387
+[Ep 14/100] [Batch 9800] Loss_G: 6.3348 | LAB_Style: 1.7057
+[Ep 14/100] [Batch 9900] Loss_G: 5.7918 | LAB_Style: 1.8431
+[Ep 14/100] [Batch 10000] Loss_G: 4.2616 | LAB_Style: 0.7453
+[Ep 14/100] [Batch 10100] Loss_G: 6.2390 | LAB_Style: 1.6469
+[Ep 14/100] [Batch 10200] Loss_G: 4.4533 | LAB_Style: 0.4033
+[Ep 14/100] [Batch 10300] Loss_G: 5.2844 | LAB_Style: 1.1112
+[Ep 14/100] [Batch 10400] Loss_G: 4.7456 | LAB_Style: 0.4735
+[Ep 14/100] [Batch 10500] Loss_G: 4.5868 | LAB_Style: 0.5308
+[Ep 14/100] [Batch 10600] Loss_G: 4.2959 | LAB_Style: 0.6151
+[Ep 14/100] [Batch 10700] Loss_G: 4.7205 | LAB_Style: 0.6846
+[Ep 14/100] [Batch 10800] Loss_G: 4.3917 | LAB_Style: 0.6741
+[Ep 14/100] [Batch 10900] Loss_G: 5.6969 | LAB_Style: 1.4090
+[Ep 14/100] [Batch 11000] Loss_G: 4.5933 | LAB_Style: 0.7052
+[Ep 14/100] [Batch 11100] Loss_G: 4.4651 | LAB_Style: 0.9106
+[Ep 14/100] [Batch 11200] Loss_G: 4.4395 | LAB_Style: 0.7168
+[Ep 14/100] [Batch 11300] Loss_G: 4.9153 | LAB_Style: 1.1330
+[Ep 14/100] [Batch 11400] Loss_G: 5.5071 | LAB_Style: 1.0976
+[Ep 14/100] [Batch 11500] Loss_G: 4.4855 | LAB_Style: 0.7759
+[Ep 14/100] [Batch 11600] Loss_G: 4.6806 | LAB_Style: 0.5859
+[Ep 14/100] [Batch 11700] Loss_G: 5.3925 | LAB_Style: 1.4133
+[Ep 14/100] [Batch 11800] Loss_G: 5.2297 | LAB_Style: 1.2001
+[Ep 14/100] [Batch 11900] Loss_G: 4.7874 | LAB_Style: 0.7013
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 14 FINISHED | Time: 9073s
+LOSSES    >> G: 5.9293 | Phase: 0.6400 | LAB_Style: 0.9596
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 27.15
+   SSIM : 0.9641
+   GSSIM: 0.9302
+   MAE  : 0.0289
+   LPIPS: 0.0286
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.13
+   SSIM : 0.3476
+   GSSIM: 0.1786
+   MAE  : 0.1180
+   LPIPS: 0.5631
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 78.42
+   KID  : 0.06957
+   IS   : 2.52
+=====================================================================================
+
+[Ep 15/100] [Batch 0] Loss_G: 4.5091 | LAB_Style: 0.6821
+[Ep 15/100] [Batch 100] Loss_G: 4.7963 | LAB_Style: 0.6397
+[Ep 15/100] [Batch 200] Loss_G: 4.9359 | LAB_Style: 0.6408
+[Ep 15/100] [Batch 300] Loss_G: 4.0300 | LAB_Style: 0.7272
+[Ep 15/100] [Batch 400] Loss_G: 6.0609 | LAB_Style: 1.3176
+[Ep 15/100] [Batch 500] Loss_G: 4.1532 | LAB_Style: 0.5179
+[Ep 15/100] [Batch 600] Loss_G: 4.6891 | LAB_Style: 1.0608
+[Ep 15/100] [Batch 700] Loss_G: 5.0575 | LAB_Style: 0.8875
+[Ep 15/100] [Batch 800] Loss_G: 5.4612 | LAB_Style: 1.7261
+[Ep 15/100] [Batch 900] Loss_G: 4.3882 | LAB_Style: 0.3081
+[Ep 15/100] [Batch 1000] Loss_G: 5.6128 | LAB_Style: 1.9488
+[Ep 15/100] [Batch 1100] Loss_G: 4.7005 | LAB_Style: 0.7956
+[Ep 15/100] [Batch 1200] Loss_G: 4.1768 | LAB_Style: 0.5299
+[Ep 15/100] [Batch 1300] Loss_G: 5.4836 | LAB_Style: 1.6939
+[Ep 15/100] [Batch 1400] Loss_G: 5.0445 | LAB_Style: 0.4873
+[Ep 15/100] [Batch 1500] Loss_G: 5.6815 | LAB_Style: 1.4178
+[Ep 15/100] [Batch 1600] Loss_G: 5.1210 | LAB_Style: 1.5739
+[Ep 15/100] [Batch 1700] Loss_G: 5.2637 | LAB_Style: 1.1836
+[Ep 15/100] [Batch 1800] Loss_G: 4.3815 | LAB_Style: 1.1635
+[Ep 15/100] [Batch 1900] Loss_G: 5.1045 | LAB_Style: 0.9814
+[Ep 15/100] [Batch 2000] Loss_G: 5.1363 | LAB_Style: 1.3550
+[Ep 15/100] [Batch 2100] Loss_G: 6.1254 | LAB_Style: 2.5593
+[Ep 15/100] [Batch 2200] Loss_G: 3.7677 | LAB_Style: 0.4458
+[Ep 15/100] [Batch 2300] Loss_G: 5.0245 | LAB_Style: 0.5714
+[Ep 15/100] [Batch 2400] Loss_G: 5.1849 | LAB_Style: 1.2521
+[Ep 15/100] [Batch 2500] Loss_G: 7.2764 | LAB_Style: 2.3625
+[Ep 15/100] [Batch 2600] Loss_G: 3.4247 | LAB_Style: 0.2534
+[Ep 15/100] [Batch 2700] Loss_G: 4.2134 | LAB_Style: 0.4632
+[Ep 15/100] [Batch 2800] Loss_G: 5.1067 | LAB_Style: 0.8994
+[Ep 15/100] [Batch 2900] Loss_G: 5.2750 | LAB_Style: 1.2599
+[Ep 15/100] [Batch 3000] Loss_G: 4.5377 | LAB_Style: 0.8445
+[Ep 15/100] [Batch 3100] Loss_G: 3.9289 | LAB_Style: 0.6619
+[Ep 15/100] [Batch 3200] Loss_G: 7.4147 | LAB_Style: 2.0702
+[Ep 15/100] [Batch 3300] Loss_G: 4.4937 | LAB_Style: 1.0616
+[Ep 15/100] [Batch 3400] Loss_G: 4.4675 | LAB_Style: 1.2465
+[Ep 15/100] [Batch 3500] Loss_G: 3.6103 | LAB_Style: 0.4225
+[Ep 15/100] [Batch 3600] Loss_G: 4.2123 | LAB_Style: 0.4154
+[Ep 15/100] [Batch 3700] Loss_G: 5.3665 | LAB_Style: 0.9832
+[Ep 15/100] [Batch 3800] Loss_G: 4.8838 | LAB_Style: 1.0310
+[Ep 15/100] [Batch 3900] Loss_G: 5.5402 | LAB_Style: 1.7484
+[Ep 15/100] [Batch 4000] Loss_G: 5.5439 | LAB_Style: 1.3003
+[Ep 15/100] [Batch 4100] Loss_G: 4.7603 | LAB_Style: 0.7001
+[Ep 15/100] [Batch 4200] Loss_G: 4.7105 | LAB_Style: 1.2603
+[Ep 15/100] [Batch 4300] Loss_G: 4.8699 | LAB_Style: 1.1462
+[Ep 15/100] [Batch 4400] Loss_G: 5.3652 | LAB_Style: 1.3431
+[Ep 15/100] [Batch 4500] Loss_G: 4.8795 | LAB_Style: 0.8742
+[Ep 15/100] [Batch 4600] Loss_G: 5.1943 | LAB_Style: 1.3661
+[Ep 15/100] [Batch 4700] Loss_G: 4.8489 | LAB_Style: 1.3320
+[Ep 15/100] [Batch 4800] Loss_G: 7.8179 | LAB_Style: 3.7182
+[Ep 15/100] [Batch 4900] Loss_G: 5.0709 | LAB_Style: 1.3045
+[Ep 15/100] [Batch 5000] Loss_G: 5.4596 | LAB_Style: 1.5109
+[Ep 15/100] [Batch 5100] Loss_G: 4.5078 | LAB_Style: 0.5744
+[Ep 15/100] [Batch 5200] Loss_G: 5.5893 | LAB_Style: 1.5463
+[Ep 15/100] [Batch 5300] Loss_G: 5.4166 | LAB_Style: 1.0253
+[Ep 15/100] [Batch 5400] Loss_G: 4.1932 | LAB_Style: 0.7120
+[Ep 15/100] [Batch 5500] Loss_G: 5.3229 | LAB_Style: 0.8481
+[Ep 15/100] [Batch 5600] Loss_G: 4.1741 | LAB_Style: 0.5102
+[Ep 15/100] [Batch 5700] Loss_G: 4.9256 | LAB_Style: 0.7741
+[Ep 15/100] [Batch 5800] Loss_G: 6.0187 | LAB_Style: 2.0456
+[Ep 15/100] [Batch 5900] Loss_G: 4.3241 | LAB_Style: 0.3988
+[Ep 15/100] [Batch 6000] Loss_G: 3.9654 | LAB_Style: 0.2662
+[Ep 15/100] [Batch 6100] Loss_G: 4.9168 | LAB_Style: 1.2627
+[Ep 15/100] [Batch 6200] Loss_G: 4.4333 | LAB_Style: 1.0108
+[Ep 15/100] [Batch 6300] Loss_G: 4.5361 | LAB_Style: 0.8119
+[Ep 15/100] [Batch 6400] Loss_G: 5.3885 | LAB_Style: 0.9826
+[Ep 15/100] [Batch 6500] Loss_G: 4.3780 | LAB_Style: 0.7236
+[Ep 15/100] [Batch 6600] Loss_G: 5.3334 | LAB_Style: 1.1557
+[Ep 15/100] [Batch 6700] Loss_G: 5.8114 | LAB_Style: 0.2484
+[Ep 15/100] [Batch 6800] Loss_G: 6.2031 | LAB_Style: 0.8075
+[Ep 15/100] [Batch 6900] Loss_G: 6.0533 | LAB_Style: 1.2291
+[Ep 15/100] [Batch 7000] Loss_G: 4.7144 | LAB_Style: 0.4742
+[Ep 15/100] [Batch 7100] Loss_G: 6.0912 | LAB_Style: 1.1417
+[Ep 15/100] [Batch 7200] Loss_G: 5.4016 | LAB_Style: 0.6613
+[Ep 15/100] [Batch 7300] Loss_G: 5.2847 | LAB_Style: 0.6995
+[Ep 15/100] [Batch 7400] Loss_G: 5.0363 | LAB_Style: 0.6862
+[Ep 15/100] [Batch 7500] Loss_G: 6.2298 | LAB_Style: 1.7519
+[Ep 15/100] [Batch 7600] Loss_G: 5.8056 | LAB_Style: 1.6566
+[Ep 15/100] [Batch 7700] Loss_G: 4.5513 | LAB_Style: 0.8127
+[Ep 15/100] [Batch 7800] Loss_G: 5.2217 | LAB_Style: 1.3256
+[Ep 15/100] [Batch 7900] Loss_G: 5.0594 | LAB_Style: 0.7591
+[Ep 15/100] [Batch 8000] Loss_G: 4.4881 | LAB_Style: 0.4544
+[Ep 15/100] [Batch 8100] Loss_G: 5.0311 | LAB_Style: 0.7609
+[Ep 15/100] [Batch 8200] Loss_G: 6.2002 | LAB_Style: 1.3729
+[Ep 15/100] [Batch 8300] Loss_G: 5.1456 | LAB_Style: 0.9395
+[Ep 15/100] [Batch 8400] Loss_G: 4.9328 | LAB_Style: 1.1391
+[Ep 15/100] [Batch 8500] Loss_G: 5.2134 | LAB_Style: 1.0622
+[Ep 15/100] [Batch 8600] Loss_G: 4.6122 | LAB_Style: 0.5912
+[Ep 15/100] [Batch 8700] Loss_G: 4.5991 | LAB_Style: 1.1580
+[Ep 15/100] [Batch 8800] Loss_G: 5.1729 | LAB_Style: 1.1948
+[Ep 15/100] [Batch 8900] Loss_G: 5.5480 | LAB_Style: 1.9006
+[Ep 15/100] [Batch 9000] Loss_G: 4.4281 | LAB_Style: 0.4587
+[Ep 15/100] [Batch 9100] Loss_G: 4.4884 | LAB_Style: 1.0387
+[Ep 15/100] [Batch 9200] Loss_G: 5.6413 | LAB_Style: 1.0622
+[Ep 15/100] [Batch 9300] Loss_G: 4.3447 | LAB_Style: 0.6325
+[Ep 15/100] [Batch 9400] Loss_G: 4.5681 | LAB_Style: 0.4675
+[Ep 15/100] [Batch 9500] Loss_G: 5.6269 | LAB_Style: 1.3654
+[Ep 15/100] [Batch 9600] Loss_G: 4.1619 | LAB_Style: 0.7984
+[Ep 15/100] [Batch 9700] Loss_G: 5.8373 | LAB_Style: 0.9486
+[Ep 15/100] [Batch 9800] Loss_G: 4.5637 | LAB_Style: 0.7745
+[Ep 15/100] [Batch 9900] Loss_G: 7.2577 | LAB_Style: 1.7215
+[Ep 15/100] [Batch 10000] Loss_G: 4.5709 | LAB_Style: 0.6952
+[Ep 15/100] [Batch 10100] Loss_G: 5.6032 | LAB_Style: 1.5145
+[Ep 15/100] [Batch 10200] Loss_G: 4.9885 | LAB_Style: 0.8631
+[Ep 15/100] [Batch 10300] Loss_G: 3.9603 | LAB_Style: 0.5750
+[Ep 15/100] [Batch 10400] Loss_G: 5.4038 | LAB_Style: 1.4854
+[Ep 15/100] [Batch 10500] Loss_G: 4.7838 | LAB_Style: 1.3082
+[Ep 15/100] [Batch 10600] Loss_G: 4.6159 | LAB_Style: 0.6891
+[Ep 15/100] [Batch 10700] Loss_G: 4.3439 | LAB_Style: 0.6311
+[Ep 15/100] [Batch 10800] Loss_G: 4.5359 | LAB_Style: 0.8572
+[Ep 15/100] [Batch 10900] Loss_G: 4.6566 | LAB_Style: 0.6847
+[Ep 15/100] [Batch 11000] Loss_G: 4.3819 | LAB_Style: 0.5054
+[Ep 15/100] [Batch 11100] Loss_G: 4.7127 | LAB_Style: 0.8539
+[Ep 15/100] [Batch 11200] Loss_G: 4.2880 | LAB_Style: 0.5166
+[Ep 15/100] [Batch 11300] Loss_G: 5.4737 | LAB_Style: 1.3600
+[Ep 15/100] [Batch 11400] Loss_G: 5.0410 | LAB_Style: 1.0000
+[Ep 15/100] [Batch 11500] Loss_G: 4.3090 | LAB_Style: 0.8559
+[Ep 15/100] [Batch 11600] Loss_G: 4.6357 | LAB_Style: 1.0016
+[Ep 15/100] [Batch 11700] Loss_G: 6.1116 | LAB_Style: 2.1803
+[Ep 15/100] [Batch 11800] Loss_G: 4.7617 | LAB_Style: 0.9349
+[Ep 15/100] [Batch 11900] Loss_G: 6.3089 | LAB_Style: 0.6345
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 15 FINISHED | Time: 9071s
+LOSSES    >> G: 4.7254 | Phase: 0.6323 | LAB_Style: 0.7829
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 26.54
+   SSIM : 0.9577
+   GSSIM: 0.9195
+   MAE  : 0.0310
+   LPIPS: 0.0343
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.10
+   SSIM : 0.3404
+   GSSIM: 0.1796
+   MAE  : 0.1196
+   LPIPS: 0.5695
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 79.20
+   KID  : 0.06586
+   IS   : 2.70
+=====================================================================================
+
+[Ep 16/100] [Batch 0] Loss_G: 6.0866 | LAB_Style: 1.7882
+[Ep 16/100] [Batch 100] Loss_G: 4.5194 | LAB_Style: 0.9735
+[Ep 16/100] [Batch 200] Loss_G: 4.0911 | LAB_Style: 0.3356
+[Ep 16/100] [Batch 300] Loss_G: 4.6011 | LAB_Style: 0.6980
+[Ep 16/100] [Batch 400] Loss_G: 4.5740 | LAB_Style: 1.0697
+[Ep 16/100] [Batch 500] Loss_G: 4.9607 | LAB_Style: 1.0459
+[Ep 16/100] [Batch 600] Loss_G: 4.5497 | LAB_Style: 1.2193
+[Ep 16/100] [Batch 700] Loss_G: 4.8737 | LAB_Style: 1.2479
+[Ep 16/100] [Batch 800] Loss_G: 5.0763 | LAB_Style: 0.9943
+[Ep 16/100] [Batch 900] Loss_G: 4.6370 | LAB_Style: 0.9792
+[Ep 16/100] [Batch 1000] Loss_G: 4.4276 | LAB_Style: 0.6348
+[Ep 16/100] [Batch 1100] Loss_G: 3.5740 | LAB_Style: 0.3533
+[Ep 16/100] [Batch 1200] Loss_G: 4.0192 | LAB_Style: 0.9988
+[Ep 16/100] [Batch 1300] Loss_G: 5.4267 | LAB_Style: 0.9294
+[Ep 16/100] [Batch 1400] Loss_G: 6.6167 | LAB_Style: 2.2115
+[Ep 16/100] [Batch 1500] Loss_G: 5.1315 | LAB_Style: 1.3790
+[Ep 16/100] [Batch 1600] Loss_G: 4.5656 | LAB_Style: 0.8977
+[Ep 16/100] [Batch 1700] Loss_G: 5.0381 | LAB_Style: 0.9611
+[Ep 16/100] [Batch 1800] Loss_G: 3.8979 | LAB_Style: 0.5650
+[Ep 16/100] [Batch 1900] Loss_G: 4.4364 | LAB_Style: 0.7630
+[Ep 16/100] [Batch 2000] Loss_G: 4.4716 | LAB_Style: 0.7121
+[Ep 16/100] [Batch 2100] Loss_G: 4.7103 | LAB_Style: 1.0988
+[Ep 16/100] [Batch 2200] Loss_G: 4.3252 | LAB_Style: 0.8883
+[Ep 16/100] [Batch 2300] Loss_G: 5.1157 | LAB_Style: 0.9032
+[Ep 16/100] [Batch 2400] Loss_G: 4.2563 | LAB_Style: 0.6774
+[Ep 16/100] [Batch 2500] Loss_G: 4.4560 | LAB_Style: 0.7383
+[Ep 16/100] [Batch 2600] Loss_G: 3.9853 | LAB_Style: 0.6643
+[Ep 16/100] [Batch 2700] Loss_G: 5.2373 | LAB_Style: 1.2137
+[Ep 16/100] [Batch 2800] Loss_G: 4.9439 | LAB_Style: 1.1836
+[Ep 16/100] [Batch 2900] Loss_G: 4.1316 | LAB_Style: 0.3009
+[Ep 16/100] [Batch 3000] Loss_G: 4.3590 | LAB_Style: 0.2331
+[Ep 16/100] [Batch 3100] Loss_G: 3.3443 | LAB_Style: 0.0432
+[Ep 16/100] [Batch 3200] Loss_G: 4.8821 | LAB_Style: 1.0079
+[Ep 16/100] [Batch 3300] Loss_G: 4.9648 | LAB_Style: 0.9122
+[Ep 16/100] [Batch 3400] Loss_G: 4.7605 | LAB_Style: 0.8125
+[Ep 16/100] [Batch 3500] Loss_G: 4.6903 | LAB_Style: 0.7605
+[Ep 16/100] [Batch 3600] Loss_G: 4.6378 | LAB_Style: 0.6964
+[Ep 16/100] [Batch 3700] Loss_G: 4.6617 | LAB_Style: 0.7822
+[Ep 16/100] [Batch 3800] Loss_G: 4.9246 | LAB_Style: 1.3046
+[Ep 16/100] [Batch 3900] Loss_G: 5.6205 | LAB_Style: 0.9733
+[Ep 16/100] [Batch 4000] Loss_G: 4.6902 | LAB_Style: 0.6604
+[Ep 16/100] [Batch 4100] Loss_G: 5.9108 | LAB_Style: 2.1033
+[Ep 16/100] [Batch 4200] Loss_G: 5.0694 | LAB_Style: 1.0642
+[Ep 16/100] [Batch 4300] Loss_G: 4.9919 | LAB_Style: 0.5751
+[Ep 16/100] [Batch 4400] Loss_G: 4.7581 | LAB_Style: 1.2716
+[Ep 16/100] [Batch 4500] Loss_G: 4.5275 | LAB_Style: 0.5928
+[Ep 16/100] [Batch 4600] Loss_G: 4.5258 | LAB_Style: 0.7418
+[Ep 16/100] [Batch 4700] Loss_G: 4.7666 | LAB_Style: 0.7583
+[Ep 16/100] [Batch 4800] Loss_G: 4.4727 | LAB_Style: 0.6979
+[Ep 16/100] [Batch 4900] Loss_G: 4.7010 | LAB_Style: 0.6477
+[Ep 16/100] [Batch 5000] Loss_G: 4.7723 | LAB_Style: 1.5042
+[Ep 16/100] [Batch 5100] Loss_G: 5.7410 | LAB_Style: 1.3760
+[Ep 16/100] [Batch 5200] Loss_G: 4.0377 | LAB_Style: 0.4948
+[Ep 16/100] [Batch 5300] Loss_G: 4.0932 | LAB_Style: 0.4395
+[Ep 16/100] [Batch 5400] Loss_G: 4.2121 | LAB_Style: 0.4720
+[Ep 16/100] [Batch 5500] Loss_G: 5.5505 | LAB_Style: 1.2131
+[Ep 16/100] [Batch 5600] Loss_G: 5.2563 | LAB_Style: 1.1745
+[Ep 16/100] [Batch 5700] Loss_G: 4.5275 | LAB_Style: 0.4863
+[Ep 16/100] [Batch 5800] Loss_G: 4.7498 | LAB_Style: 1.0583
+[Ep 16/100] [Batch 5900] Loss_G: 5.1749 | LAB_Style: 1.1032
+[Ep 16/100] [Batch 6000] Loss_G: 3.9786 | LAB_Style: 0.5172
+[Ep 16/100] [Batch 6100] Loss_G: 5.5956 | LAB_Style: 1.2188
+[Ep 16/100] [Batch 6200] Loss_G: 4.8349 | LAB_Style: 1.2384
+[Ep 16/100] [Batch 6300] Loss_G: 4.7754 | LAB_Style: 1.0382
+[Ep 16/100] [Batch 6400] Loss_G: 4.5725 | LAB_Style: 0.9190
+[Ep 16/100] [Batch 6500] Loss_G: 4.4986 | LAB_Style: 0.7891
+[Ep 16/100] [Batch 6600] Loss_G: 4.3031 | LAB_Style: 0.2977
+[Ep 16/100] [Batch 6700] Loss_G: 5.0977 | LAB_Style: 1.1660
+[Ep 16/100] [Batch 6800] Loss_G: 4.7726 | LAB_Style: 1.0775
+[Ep 16/100] [Batch 6900] Loss_G: 4.5971 | LAB_Style: 0.8431
+[Ep 16/100] [Batch 7000] Loss_G: 4.0263 | LAB_Style: 0.5989
+[Ep 16/100] [Batch 7100] Loss_G: 4.0331 | LAB_Style: 0.5139
+[Ep 16/100] [Batch 7200] Loss_G: 4.7940 | LAB_Style: 0.7588
+[Ep 16/100] [Batch 7300] Loss_G: 5.8337 | LAB_Style: 1.8985
+[Ep 16/100] [Batch 7400] Loss_G: 3.8868 | LAB_Style: 0.5780
+[Ep 16/100] [Batch 7500] Loss_G: 4.5738 | LAB_Style: 1.0386
+[Ep 16/100] [Batch 7600] Loss_G: 4.4237 | LAB_Style: 0.4541
+[Ep 16/100] [Batch 7700] Loss_G: 4.4504 | LAB_Style: 1.0261
+[Ep 16/100] [Batch 7800] Loss_G: 6.3066 | LAB_Style: 2.0197
+[Ep 16/100] [Batch 7900] Loss_G: 3.8661 | LAB_Style: 0.4323
+[Ep 16/100] [Batch 8000] Loss_G: 5.1932 | LAB_Style: 1.4748
+[Ep 16/100] [Batch 8100] Loss_G: 4.7767 | LAB_Style: 0.5191
+[Ep 16/100] [Batch 8200] Loss_G: 4.7999 | LAB_Style: 0.8297
+[Ep 16/100] [Batch 8300] Loss_G: 4.7444 | LAB_Style: 1.0271
+[Ep 16/100] [Batch 8400] Loss_G: 4.6865 | LAB_Style: 1.0867
+[Ep 16/100] [Batch 8500] Loss_G: 4.4796 | LAB_Style: 1.1454
+[Ep 16/100] [Batch 8600] Loss_G: 5.1203 | LAB_Style: 1.4593
+[Ep 16/100] [Batch 8700] Loss_G: 5.0732 | LAB_Style: 0.9365
+[Ep 16/100] [Batch 8800] Loss_G: 4.9553 | LAB_Style: 1.1019
+[Ep 16/100] [Batch 8900] Loss_G: 4.6616 | LAB_Style: 0.9839
+[Ep 16/100] [Batch 9000] Loss_G: 5.4080 | LAB_Style: 1.3767
+[Ep 16/100] [Batch 9100] Loss_G: 5.0937 | LAB_Style: 1.0017
+[Ep 16/100] [Batch 9200] Loss_G: 5.0026 | LAB_Style: 0.6885
+[Ep 16/100] [Batch 9300] Loss_G: 5.3979 | LAB_Style: 0.8364
+[Ep 16/100] [Batch 9400] Loss_G: 5.7563 | LAB_Style: 1.6617
+[Ep 16/100] [Batch 9500] Loss_G: 4.5627 | LAB_Style: 0.7927
+[Ep 16/100] [Batch 9600] Loss_G: 5.3513 | LAB_Style: 1.3624
+[Ep 16/100] [Batch 9700] Loss_G: 5.4844 | LAB_Style: 1.4337
+[Ep 16/100] [Batch 9800] Loss_G: 5.8393 | LAB_Style: 1.3738
+[Ep 16/100] [Batch 9900] Loss_G: 5.4516 | LAB_Style: 0.7961
+[Ep 16/100] [Batch 10000] Loss_G: 5.1248 | LAB_Style: 1.2765
+[Ep 16/100] [Batch 10100] Loss_G: 6.5571 | LAB_Style: 2.2878
+[Ep 16/100] [Batch 10200] Loss_G: 4.1758 | LAB_Style: 0.6387
+[Ep 16/100] [Batch 10300] Loss_G: 4.2547 | LAB_Style: 1.1629
+[Ep 16/100] [Batch 10400] Loss_G: 3.8407 | LAB_Style: 0.3786
+[Ep 16/100] [Batch 10500] Loss_G: 4.7820 | LAB_Style: 0.7048
+[Ep 16/100] [Batch 10600] Loss_G: 4.2765 | LAB_Style: 0.3634
+[Ep 16/100] [Batch 10700] Loss_G: 5.1271 | LAB_Style: 1.2956
+[Ep 16/100] [Batch 10800] Loss_G: 4.2585 | LAB_Style: 0.3491
+[Ep 16/100] [Batch 10900] Loss_G: 5.4255 | LAB_Style: 1.0311
+[Ep 16/100] [Batch 11000] Loss_G: 4.1315 | LAB_Style: 0.4667
+[Ep 16/100] [Batch 11100] Loss_G: 5.4276 | LAB_Style: 1.4910
+[Ep 16/100] [Batch 11200] Loss_G: 4.2020 | LAB_Style: 0.8196
+[Ep 16/100] [Batch 11300] Loss_G: 5.6091 | LAB_Style: 0.6557
+[Ep 16/100] [Batch 11400] Loss_G: 4.7012 | LAB_Style: 0.8484
+[Ep 16/100] [Batch 11500] Loss_G: 4.8780 | LAB_Style: 0.8725
+[Ep 16/100] [Batch 11600] Loss_G: 4.3357 | LAB_Style: 0.7792
+[Ep 16/100] [Batch 11700] Loss_G: 5.5678 | LAB_Style: 1.0627
+[Ep 16/100] [Batch 11800] Loss_G: 4.4224 | LAB_Style: 0.2228
+[Ep 16/100] [Batch 11900] Loss_G: 4.9981 | LAB_Style: 1.4471
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 16 FINISHED | Time: 9067s
+LOSSES    >> G: 5.2276 | Phase: 0.6569 | LAB_Style: 1.0050
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 27.12
+   SSIM : 0.9638
+   GSSIM: 0.9280
+   MAE  : 0.0291
+   LPIPS: 0.0292
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.14
+   SSIM : 0.3477
+   GSSIM: 0.1779
+   MAE  : 0.1182
+   LPIPS: 0.5643
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 75.73
+   KID  : 0.06594
+   IS   : 2.57
+=====================================================================================
+
+[Ep 17/100] [Batch 0] Loss_G: 4.8787 | LAB_Style: 0.9520
+[Ep 17/100] [Batch 100] Loss_G: 4.9415 | LAB_Style: 1.6400
+[Ep 17/100] [Batch 200] Loss_G: 4.2401 | LAB_Style: 0.7499
+[Ep 17/100] [Batch 300] Loss_G: 4.6895 | LAB_Style: 0.6807
+[Ep 17/100] [Batch 400] Loss_G: 16.4611 | LAB_Style: 3.4269
+[Ep 17/100] [Batch 500] Loss_G: 5.1003 | LAB_Style: 1.3178
+[Ep 17/100] [Batch 600] Loss_G: 5.7577 | LAB_Style: 1.8696
+[Ep 17/100] [Batch 700] Loss_G: 5.6145 | LAB_Style: 0.9534
+[Ep 17/100] [Batch 800] Loss_G: 4.3644 | LAB_Style: 0.6664
+[Ep 17/100] [Batch 900] Loss_G: 4.1895 | LAB_Style: 0.6255
+[Ep 17/100] [Batch 1000] Loss_G: 4.8374 | LAB_Style: 1.2774
+[Ep 17/100] [Batch 1100] Loss_G: 5.0110 | LAB_Style: 1.1715
+[Ep 17/100] [Batch 1200] Loss_G: 4.0172 | LAB_Style: 0.8347
+[Ep 17/100] [Batch 1300] Loss_G: 5.0450 | LAB_Style: 1.4206
+[Ep 17/100] [Batch 1400] Loss_G: 5.3656 | LAB_Style: 1.7500
+[Ep 17/100] [Batch 1500] Loss_G: 4.4669 | LAB_Style: 0.5124
+[Ep 17/100] [Batch 1600] Loss_G: 4.1683 | LAB_Style: 0.5427
+[Ep 17/100] [Batch 1700] Loss_G: 5.8597 | LAB_Style: 1.4904
+[Ep 17/100] [Batch 1800] Loss_G: 5.1299 | LAB_Style: 1.4192
+[Ep 17/100] [Batch 1900] Loss_G: 6.4252 | LAB_Style: 2.2226
+[Ep 17/100] [Batch 2000] Loss_G: 5.1130 | LAB_Style: 1.5279
+[Ep 17/100] [Batch 2100] Loss_G: 4.3520 | LAB_Style: 0.5878
+[Ep 17/100] [Batch 2200] Loss_G: 5.3586 | LAB_Style: 0.9192
+[Ep 17/100] [Batch 2300] Loss_G: 6.7001 | LAB_Style: 2.3236
+[Ep 17/100] [Batch 2400] Loss_G: 5.2797 | LAB_Style: 1.0097
+[Ep 17/100] [Batch 2500] Loss_G: 4.9441 | LAB_Style: 1.2073
+[Ep 17/100] [Batch 2600] Loss_G: 5.7980 | LAB_Style: 2.0589
+[Ep 17/100] [Batch 2700] Loss_G: 4.7816 | LAB_Style: 1.1891
+[Ep 17/100] [Batch 2800] Loss_G: 6.2631 | LAB_Style: 2.2152
+[Ep 17/100] [Batch 2900] Loss_G: 4.4833 | LAB_Style: 0.3329
+[Ep 17/100] [Batch 3000] Loss_G: 5.0265 | LAB_Style: 1.2404
+[Ep 17/100] [Batch 3100] Loss_G: 4.9264 | LAB_Style: 1.0086
+[Ep 17/100] [Batch 3200] Loss_G: 3.8789 | LAB_Style: 0.2873
+[Ep 17/100] [Batch 3300] Loss_G: 5.0279 | LAB_Style: 1.1029
+[Ep 17/100] [Batch 3400] Loss_G: 6.6627 | LAB_Style: 2.2526
+[Ep 17/100] [Batch 3500] Loss_G: 6.7190 | LAB_Style: 2.9719
+[Ep 17/100] [Batch 3600] Loss_G: 4.1395 | LAB_Style: 0.6976
+[Ep 17/100] [Batch 3700] Loss_G: 5.9767 | LAB_Style: 0.6160
+[Ep 17/100] [Batch 3800] Loss_G: 4.5779 | LAB_Style: 0.4798
+[Ep 17/100] [Batch 3900] Loss_G: 4.6864 | LAB_Style: 1.0525
+[Ep 17/100] [Batch 4000] Loss_G: 4.0088 | LAB_Style: 0.3406
+[Ep 17/100] [Batch 4100] Loss_G: 3.7493 | LAB_Style: 0.2844
+[Ep 17/100] [Batch 4200] Loss_G: 5.4840 | LAB_Style: 1.4883
+[Ep 17/100] [Batch 4300] Loss_G: 4.5702 | LAB_Style: 0.5622
+[Ep 17/100] [Batch 4400] Loss_G: 5.4456 | LAB_Style: 0.8600
+[Ep 17/100] [Batch 4500] Loss_G: 4.6636 | LAB_Style: 1.3656
+[Ep 17/100] [Batch 4600] Loss_G: 4.0409 | LAB_Style: 0.6721
+[Ep 17/100] [Batch 4700] Loss_G: 5.2907 | LAB_Style: 1.3649
+[Ep 17/100] [Batch 4800] Loss_G: 5.3067 | LAB_Style: 1.3298
+[Ep 17/100] [Batch 4900] Loss_G: 3.5817 | LAB_Style: 0.3726
+[Ep 17/100] [Batch 5000] Loss_G: 3.6107 | LAB_Style: 0.4369
+[Ep 17/100] [Batch 5100] Loss_G: 3.8174 | LAB_Style: 0.6371
+[Ep 17/100] [Batch 5200] Loss_G: 5.4105 | LAB_Style: 0.6945
+[Ep 17/100] [Batch 5300] Loss_G: 5.6448 | LAB_Style: 1.0209
+[Ep 17/100] [Batch 5400] Loss_G: 6.5910 | LAB_Style: 0.8012
+[Ep 17/100] [Batch 5500] Loss_G: 3.8121 | LAB_Style: 0.2241
+[Ep 17/100] [Batch 5600] Loss_G: 3.9620 | LAB_Style: 0.7445
+[Ep 17/100] [Batch 5700] Loss_G: 4.2802 | LAB_Style: 0.6684
+[Ep 17/100] [Batch 5800] Loss_G: 4.6916 | LAB_Style: 0.9462
+[Ep 17/100] [Batch 5900] Loss_G: 3.7806 | LAB_Style: 0.4640
+[Ep 17/100] [Batch 6000] Loss_G: 4.8785 | LAB_Style: 1.0962
+[Ep 17/100] [Batch 6100] Loss_G: 7.1099 | LAB_Style: 2.9895
+[Ep 17/100] [Batch 6200] Loss_G: 4.8129 | LAB_Style: 1.1150
+[Ep 17/100] [Batch 6300] Loss_G: 4.3375 | LAB_Style: 0.8675
+[Ep 17/100] [Batch 6400] Loss_G: 5.8570 | LAB_Style: 1.5407
+[Ep 17/100] [Batch 6500] Loss_G: 6.9198 | LAB_Style: 1.8519
+[Ep 17/100] [Batch 6600] Loss_G: 4.9523 | LAB_Style: 1.0597
+[Ep 17/100] [Batch 6700] Loss_G: 5.4373 | LAB_Style: 1.7565
+[Ep 17/100] [Batch 6800] Loss_G: 5.3583 | LAB_Style: 1.2618
+[Ep 17/100] [Batch 6900] Loss_G: 4.4120 | LAB_Style: 1.2038
+[Ep 17/100] [Batch 7000] Loss_G: 4.6554 | LAB_Style: 0.9699
+[Ep 17/100] [Batch 7100] Loss_G: 5.0216 | LAB_Style: 0.9395
+[Ep 17/100] [Batch 7200] Loss_G: 5.2920 | LAB_Style: 1.2740
+[Ep 17/100] [Batch 7300] Loss_G: 4.4360 | LAB_Style: 0.9813
+[Ep 17/100] [Batch 7400] Loss_G: 4.4929 | LAB_Style: 0.4120
+[Ep 17/100] [Batch 7500] Loss_G: 5.0542 | LAB_Style: 1.5060
+[Ep 17/100] [Batch 7600] Loss_G: 5.0177 | LAB_Style: 0.9613
+[Ep 17/100] [Batch 7700] Loss_G: 5.8337 | LAB_Style: 1.8562
+[Ep 17/100] [Batch 7800] Loss_G: 4.3920 | LAB_Style: 0.5224
+[Ep 17/100] [Batch 7900] Loss_G: 5.1267 | LAB_Style: 1.5247
+[Ep 17/100] [Batch 8000] Loss_G: 5.1430 | LAB_Style: 1.5643
+[Ep 17/100] [Batch 8100] Loss_G: 10.8628 | LAB_Style: 1.5913
+[Ep 17/100] [Batch 8200] Loss_G: 4.5691 | LAB_Style: 0.8262
+[Ep 17/100] [Batch 8300] Loss_G: 4.3698 | LAB_Style: 0.6987
+[Ep 17/100] [Batch 8400] Loss_G: 4.5013 | LAB_Style: 1.2444
+[Ep 17/100] [Batch 8500] Loss_G: 4.5528 | LAB_Style: 0.5735
+[Ep 17/100] [Batch 8600] Loss_G: 3.9979 | LAB_Style: 0.6419
+[Ep 17/100] [Batch 8700] Loss_G: 6.5486 | LAB_Style: 1.6056
+[Ep 17/100] [Batch 8800] Loss_G: 4.0423 | LAB_Style: 0.6769
+[Ep 17/100] [Batch 8900] Loss_G: 7.3962 | LAB_Style: 2.8084
+[Ep 17/100] [Batch 9000] Loss_G: 5.0516 | LAB_Style: 1.2076
+[Ep 17/100] [Batch 9100] Loss_G: 4.9874 | LAB_Style: 0.6151
+[Ep 17/100] [Batch 9200] Loss_G: 4.4133 | LAB_Style: 0.8081
+[Ep 17/100] [Batch 9300] Loss_G: 5.3067 | LAB_Style: 1.1097
+[Ep 17/100] [Batch 9400] Loss_G: 5.5677 | LAB_Style: 1.0348
+[Ep 17/100] [Batch 9500] Loss_G: 4.5299 | LAB_Style: 0.7885
+[Ep 17/100] [Batch 9600] Loss_G: 4.4499 | LAB_Style: 0.8768
+[Ep 17/100] [Batch 9700] Loss_G: 4.4998 | LAB_Style: 0.6532
+[Ep 17/100] [Batch 9800] Loss_G: 5.1790 | LAB_Style: 1.3238
+[Ep 17/100] [Batch 9900] Loss_G: 5.2623 | LAB_Style: 1.0099
+[Ep 17/100] [Batch 10000] Loss_G: 3.8835 | LAB_Style: 0.7185
+[Ep 17/100] [Batch 10100] Loss_G: 4.1629 | LAB_Style: 0.9117
+[Ep 17/100] [Batch 10200] Loss_G: 4.1309 | LAB_Style: 0.6851
+[Ep 17/100] [Batch 10300] Loss_G: 5.9428 | LAB_Style: 1.2405
+[Ep 17/100] [Batch 10400] Loss_G: 3.5729 | LAB_Style: 0.2924
+[Ep 17/100] [Batch 10500] Loss_G: 7.5388 | LAB_Style: 2.9080
+[Ep 17/100] [Batch 10600] Loss_G: 6.7011 | LAB_Style: 2.9396
+[Ep 17/100] [Batch 10700] Loss_G: 4.2480 | LAB_Style: 0.6781
+[Ep 17/100] [Batch 10800] Loss_G: 4.4015 | LAB_Style: 0.8262
+[Ep 17/100] [Batch 10900] Loss_G: 6.3194 | LAB_Style: 2.0183
+[Ep 17/100] [Batch 11000] Loss_G: 6.6211 | LAB_Style: 1.9560
+[Ep 17/100] [Batch 11100] Loss_G: 4.7540 | LAB_Style: 1.0020
+[Ep 17/100] [Batch 11200] Loss_G: 5.3549 | LAB_Style: 1.1527
+[Ep 17/100] [Batch 11300] Loss_G: 4.8325 | LAB_Style: 0.8989
+[Ep 17/100] [Batch 11400] Loss_G: 4.4092 | LAB_Style: 0.7485
+[Ep 17/100] [Batch 11500] Loss_G: 4.6179 | LAB_Style: 0.6532
+[Ep 17/100] [Batch 11600] Loss_G: 4.2619 | LAB_Style: 0.9422
+[Ep 17/100] [Batch 11700] Loss_G: 3.5589 | LAB_Style: 0.4118
+[Ep 17/100] [Batch 11800] Loss_G: 5.4274 | LAB_Style: 1.4281
+[Ep 17/100] [Batch 11900] Loss_G: 4.9377 | LAB_Style: 1.2518
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 17 FINISHED | Time: 9052s
+LOSSES    >> G: 3.9406 | Phase: 0.6173 | LAB_Style: 0.2913
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 27.13
+   SSIM : 0.9635
+   GSSIM: 0.9290
+   MAE  : 0.0289
+   LPIPS: 0.0299
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.11
+   SSIM : 0.3478
+   GSSIM: 0.1780
+   MAE  : 0.1187
+   LPIPS: 0.5637
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 74.25
+   KID  : 0.06539
+   IS   : 2.60
+=====================================================================================
+
+[Ep 18/100] [Batch 0] Loss_G: 6.1421 | LAB_Style: 2.3265
+[Ep 18/100] [Batch 100] Loss_G: 3.8509 | LAB_Style: 0.2899
+[Ep 18/100] [Batch 200] Loss_G: 6.8529 | LAB_Style: 1.4997
+[Ep 18/100] [Batch 300] Loss_G: 4.2301 | LAB_Style: 0.3813
+[Ep 18/100] [Batch 400] Loss_G: 5.0634 | LAB_Style: 1.4901
+[Ep 18/100] [Batch 500] Loss_G: 4.4477 | LAB_Style: 0.7569
+[Ep 18/100] [Batch 600] Loss_G: 4.6771 | LAB_Style: 0.7551
+[Ep 18/100] [Batch 700] Loss_G: 4.2753 | LAB_Style: 0.8841
+[Ep 18/100] [Batch 800] Loss_G: 6.8379 | LAB_Style: 2.5426
+[Ep 18/100] [Batch 900] Loss_G: 3.8738 | LAB_Style: 0.5206
+[Ep 18/100] [Batch 1000] Loss_G: 5.7138 | LAB_Style: 1.5804
+[Ep 18/100] [Batch 1100] Loss_G: 3.8317 | LAB_Style: 0.6458
+[Ep 18/100] [Batch 1200] Loss_G: 4.5266 | LAB_Style: 0.9456
+[Ep 18/100] [Batch 1300] Loss_G: 4.8389 | LAB_Style: 0.7408
+[Ep 18/100] [Batch 1400] Loss_G: 4.7673 | LAB_Style: 1.7611
+[Ep 18/100] [Batch 1500] Loss_G: 4.1740 | LAB_Style: 1.0640
+[Ep 18/100] [Batch 1600] Loss_G: 4.1453 | LAB_Style: 0.7871
+[Ep 18/100] [Batch 1700] Loss_G: 7.8411 | LAB_Style: 1.2086
+[Ep 18/100] [Batch 1800] Loss_G: 5.8427 | LAB_Style: 1.2938
+[Ep 18/100] [Batch 1900] Loss_G: 4.0945 | LAB_Style: 0.3917
+[Ep 18/100] [Batch 2000] Loss_G: 5.0814 | LAB_Style: 1.2985
+[Ep 18/100] [Batch 2100] Loss_G: 4.0311 | LAB_Style: 0.2554
+[Ep 18/100] [Batch 2200] Loss_G: 4.0175 | LAB_Style: 0.7793
+[Ep 18/100] [Batch 2300] Loss_G: 5.3659 | LAB_Style: 0.9427
+[Ep 18/100] [Batch 2400] Loss_G: 4.9684 | LAB_Style: 1.0954
+[Ep 18/100] [Batch 2500] Loss_G: 3.3090 | LAB_Style: 0.3960
+[Ep 18/100] [Batch 2600] Loss_G: 5.8112 | LAB_Style: 1.6393
+[Ep 18/100] [Batch 2700] Loss_G: 4.6714 | LAB_Style: 0.9747
+[Ep 18/100] [Batch 2800] Loss_G: 4.8103 | LAB_Style: 0.6697
+[Ep 18/100] [Batch 2900] Loss_G: 4.6318 | LAB_Style: 1.0191
+[Ep 18/100] [Batch 3000] Loss_G: 5.5271 | LAB_Style: 1.5917
+[Ep 18/100] [Batch 3100] Loss_G: 4.8079 | LAB_Style: 0.6777
+[Ep 18/100] [Batch 3200] Loss_G: 4.6764 | LAB_Style: 0.8853
+[Ep 18/100] [Batch 3300] Loss_G: 5.3056 | LAB_Style: 1.0314
+[Ep 18/100] [Batch 3400] Loss_G: 6.8577 | LAB_Style: 2.2384
+[Ep 18/100] [Batch 3500] Loss_G: 5.4072 | LAB_Style: 1.4824
+[Ep 18/100] [Batch 3600] Loss_G: 4.8606 | LAB_Style: 1.0448
+[Ep 18/100] [Batch 3700] Loss_G: 5.0283 | LAB_Style: 1.1456
+[Ep 18/100] [Batch 3800] Loss_G: 4.7950 | LAB_Style: 1.0873
+[Ep 18/100] [Batch 3900] Loss_G: 4.4582 | LAB_Style: 0.5830
+[Ep 18/100] [Batch 4000] Loss_G: 3.7180 | LAB_Style: 0.3245
+[Ep 18/100] [Batch 4100] Loss_G: 4.6807 | LAB_Style: 0.8603
+[Ep 18/100] [Batch 4200] Loss_G: 4.1942 | LAB_Style: 0.5908
+[Ep 18/100] [Batch 4300] Loss_G: 5.6277 | LAB_Style: 1.4592
+[Ep 18/100] [Batch 4400] Loss_G: 5.4802 | LAB_Style: 1.9262
+[Ep 18/100] [Batch 4500] Loss_G: 4.5743 | LAB_Style: 0.8244
+[Ep 18/100] [Batch 4600] Loss_G: 4.3005 | LAB_Style: 0.6800
+[Ep 18/100] [Batch 4700] Loss_G: 5.6404 | LAB_Style: 1.7324
+[Ep 18/100] [Batch 4800] Loss_G: 4.6105 | LAB_Style: 0.5353
+[Ep 18/100] [Batch 4900] Loss_G: 3.7840 | LAB_Style: 0.4511
+[Ep 18/100] [Batch 5000] Loss_G: 5.8957 | LAB_Style: 1.9253
+[Ep 18/100] [Batch 5100] Loss_G: 5.4081 | LAB_Style: 1.0424
+[Ep 18/100] [Batch 5200] Loss_G: 5.7936 | LAB_Style: 1.7216
+[Ep 18/100] [Batch 5300] Loss_G: 5.7046 | LAB_Style: 1.6839
+[Ep 18/100] [Batch 5400] Loss_G: 4.7571 | LAB_Style: 1.1503
+[Ep 18/100] [Batch 5500] Loss_G: 4.6805 | LAB_Style: 0.9751
+[Ep 18/100] [Batch 5600] Loss_G: 4.7873 | LAB_Style: 1.1616
+[Ep 18/100] [Batch 5700] Loss_G: 4.4873 | LAB_Style: 1.0122
+[Ep 18/100] [Batch 5800] Loss_G: 4.0195 | LAB_Style: 0.4170
+[Ep 18/100] [Batch 5900] Loss_G: 3.9287 | LAB_Style: 0.3173
+[Ep 18/100] [Batch 6000] Loss_G: 4.8055 | LAB_Style: 1.3941
+[Ep 18/100] [Batch 6100] Loss_G: 4.5172 | LAB_Style: 0.8199
+[Ep 18/100] [Batch 6200] Loss_G: 4.8785 | LAB_Style: 1.2568
+[Ep 18/100] [Batch 6300] Loss_G: 5.2285 | LAB_Style: 1.2733
+[Ep 18/100] [Batch 6400] Loss_G: 4.1203 | LAB_Style: 0.6714
+[Ep 18/100] [Batch 6500] Loss_G: 4.2712 | LAB_Style: 0.6750
+[Ep 18/100] [Batch 6600] Loss_G: 5.1290 | LAB_Style: 1.0541
+[Ep 18/100] [Batch 6700] Loss_G: 5.3083 | LAB_Style: 1.4702
+[Ep 18/100] [Batch 6800] Loss_G: 5.5786 | LAB_Style: 1.5108
+[Ep 18/100] [Batch 6900] Loss_G: 4.6760 | LAB_Style: 0.4718
+[Ep 18/100] [Batch 7000] Loss_G: 5.6258 | LAB_Style: 1.0808
+[Ep 18/100] [Batch 7100] Loss_G: 5.4193 | LAB_Style: 1.2071
+[Ep 18/100] [Batch 7200] Loss_G: 5.2502 | LAB_Style: 1.1384
+[Ep 18/100] [Batch 7300] Loss_G: 4.6023 | LAB_Style: 0.7297
+[Ep 18/100] [Batch 7400] Loss_G: 5.2956 | LAB_Style: 1.0660
+[Ep 18/100] [Batch 7500] Loss_G: 5.4246 | LAB_Style: 1.8929
+[Ep 18/100] [Batch 7600] Loss_G: 4.7648 | LAB_Style: 1.5214
+[Ep 18/100] [Batch 7700] Loss_G: 5.3232 | LAB_Style: 1.3810
+[Ep 18/100] [Batch 7800] Loss_G: 5.7889 | LAB_Style: 1.9515
+[Ep 18/100] [Batch 7900] Loss_G: 5.8771 | LAB_Style: 1.1958
+[Ep 18/100] [Batch 8000] Loss_G: 4.8820 | LAB_Style: 1.3012
+[Ep 18/100] [Batch 8100] Loss_G: 4.1655 | LAB_Style: 0.5258
+[Ep 18/100] [Batch 8200] Loss_G: 4.5677 | LAB_Style: 1.0537
+[Ep 18/100] [Batch 8300] Loss_G: 5.5026 | LAB_Style: 1.7446
+[Ep 18/100] [Batch 8400] Loss_G: 4.8711 | LAB_Style: 1.3527
+[Ep 18/100] [Batch 8500] Loss_G: 4.8887 | LAB_Style: 1.1591
+[Ep 18/100] [Batch 8600] Loss_G: 4.7017 | LAB_Style: 1.0543
+[Ep 18/100] [Batch 8700] Loss_G: 5.0532 | LAB_Style: 1.7084
+[Ep 18/100] [Batch 8800] Loss_G: 3.8389 | LAB_Style: 1.0657
+[Ep 18/100] [Batch 8900] Loss_G: 4.5323 | LAB_Style: 0.8021
+[Ep 18/100] [Batch 9000] Loss_G: 5.0292 | LAB_Style: 1.2660
+[Ep 18/100] [Batch 9100] Loss_G: 4.4566 | LAB_Style: 0.7456
+[Ep 18/100] [Batch 9200] Loss_G: 5.4905 | LAB_Style: 1.2516
+[Ep 18/100] [Batch 9300] Loss_G: 5.6317 | LAB_Style: 1.9316
+[Ep 18/100] [Batch 9400] Loss_G: 4.3903 | LAB_Style: 0.2182
+[Ep 18/100] [Batch 9500] Loss_G: 4.9493 | LAB_Style: 1.5369
+[Ep 18/100] [Batch 9600] Loss_G: 4.6127 | LAB_Style: 1.1186
+[Ep 18/100] [Batch 9700] Loss_G: 5.9518 | LAB_Style: 2.3794
+[Ep 18/100] [Batch 9800] Loss_G: 5.1559 | LAB_Style: 1.1676
+[Ep 18/100] [Batch 9900] Loss_G: 5.2008 | LAB_Style: 1.3712
+[Ep 18/100] [Batch 10000] Loss_G: 4.9939 | LAB_Style: 0.9006
+[Ep 18/100] [Batch 10100] Loss_G: 4.4093 | LAB_Style: 0.8776
+[Ep 18/100] [Batch 10200] Loss_G: 5.0207 | LAB_Style: 0.7111
+[Ep 18/100] [Batch 10300] Loss_G: 4.3891 | LAB_Style: 0.4633
+[Ep 18/100] [Batch 10400] Loss_G: 4.4464 | LAB_Style: 0.9327
+[Ep 18/100] [Batch 10500] Loss_G: 4.6935 | LAB_Style: 0.7029
+[Ep 18/100] [Batch 10600] Loss_G: 4.0097 | LAB_Style: 0.4876
+[Ep 18/100] [Batch 10700] Loss_G: 5.2213 | LAB_Style: 1.0625
+[Ep 18/100] [Batch 10800] Loss_G: 6.1703 | LAB_Style: 1.6497
+[Ep 18/100] [Batch 10900] Loss_G: 6.1015 | LAB_Style: 1.6789
+[Ep 18/100] [Batch 11000] Loss_G: 7.0743 | LAB_Style: 2.7065
+[Ep 18/100] [Batch 11100] Loss_G: 4.0065 | LAB_Style: 0.5793
+[Ep 18/100] [Batch 11200] Loss_G: 5.2184 | LAB_Style: 0.5825
+[Ep 18/100] [Batch 11300] Loss_G: 4.7698 | LAB_Style: 1.1205
+[Ep 18/100] [Batch 11400] Loss_G: 4.3717 | LAB_Style: 0.7141
+[Ep 18/100] [Batch 11500] Loss_G: 5.7797 | LAB_Style: 1.6933
+[Ep 18/100] [Batch 11600] Loss_G: 3.8591 | LAB_Style: 0.4389
+[Ep 18/100] [Batch 11700] Loss_G: 5.2020 | LAB_Style: 1.2936
+[Ep 18/100] [Batch 11800] Loss_G: 5.2592 | LAB_Style: 1.1182
+[Ep 18/100] [Batch 11900] Loss_G: 4.2612 | LAB_Style: 0.5368
+[INFO] Computing distribution metrics (this may take a moment)...
+
+=====================================================================================
+EPOCH 18 FINISHED | Time: 9041s
+LOSSES    >> G: 4.7906 | Phase: 0.6061 | LAB_Style: 1.0992
+-------------------------------------------------------------------------------------
+CYCLE (Reconst / Paired SAR vs Rec-SAR):
+   PSNR : 27.25
+   SSIM : 0.9650
+   GSSIM: 0.9312
+   MAE  : 0.0285
+   LPIPS: 0.0287
+-------------------------------------------------------------------------------------
+DIRECT (Fidelity / Unpaired Opt vs Fake-Opt):
+   PSNR : 17.13
+   SSIM : 0.3488
+   GSSIM: 0.1784
+   MAE  : 0.1182
+   LPIPS: 0.5635
+-------------------------------------------------------------------------------------
+REALISM (Dist):
+   FID  : 73.39
+   KID  : 0.06938
+   IS   : 2.60
+=====================================================================================
+

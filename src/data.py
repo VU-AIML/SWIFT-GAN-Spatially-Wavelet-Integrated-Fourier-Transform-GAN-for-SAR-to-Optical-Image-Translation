@@ -6,17 +6,88 @@ import rasterio
 from rasterio.windows import Window, from_bounds
 import numpy as np
 from tqdm import tqdm
-from torchvision import transforms # Added for testing augmentation in main block
+from torchvision import transforms
+from PIL import Image
+
+
+class FolderDataset(Dataset):
+    """
+    Simple single-domain RGB image folder dataset for standard unpaired I2I
+    benchmarks (horse2zebra, maps, summer2winter, ...).
+
+    Reads all images from one folder (e.g. trainA) and returns tensors in the
+    SAME format as SentinelDataset so the rest of the pipeline (model, losses,
+    metrics) is unchanged:
+        - shape [3, patch_size, patch_size]
+        - float32
+        - normalized to [-1, 1]
+
+    Usage (one instance per domain, exactly like the S1/S2 split):
+        ds_A = FolderDataset(".../horse2zebra/trainA", patch_size=256, transform=t)
+        ds_B = FolderDataset(".../horse2zebra/trainB", patch_size=256, transform=t)
+    """
+    IMG_EXTS = ('.jpg', '.jpeg', '.png', '.bmp', '.webp', '.tif', '.tiff')
+
+    def __init__(self, root_dir, patch_size=256, transform=None):
+        self.root_dir = root_dir
+        self.patch_size = patch_size
+        self.transform = transform
+
+        # Recursively collect image paths (benchmarks are usually flat, but be safe)
+        self.files = []
+        for ext in self.IMG_EXTS:
+            self.files += glob.glob(os.path.join(root_dir, f"*{ext}"))
+            self.files += glob.glob(os.path.join(root_dir, "**", f"*{ext}"), recursive=True)
+        # de-dup and sort for determinism
+        self.files = sorted(set(self.files))
+
+        if len(self.files) == 0:
+            print(f"[WARNING] FolderDataset found 0 images in {root_dir}")
+        else:
+            print(f"[INFO] FolderDataset: {len(self.files)} images in {root_dir}")
+
+        # A resize to patch_size is always applied so odd-sized benchmark images
+        # (e.g. maps are 600x600, some are 256x256) become a fixed square.
+        self._resize = transforms.Resize((patch_size, patch_size))
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, idx):
+        path = self.files[idx]
+        try:
+            img = Image.open(path).convert('RGB')          # force 3-channel
+            img = self._resize(img)                          # -> patch_size square
+            arr = np.asarray(img, dtype=np.float32) / 255.0  # [0,1], HWC
+            arr = np.transpose(arr, (2, 0, 1))               # -> CHW
+            img_tensor = torch.from_numpy(arr).float()
+
+            # Same augmentation hook as SentinelDataset (tensor-level transforms:
+            # RandomHorizontalFlip / RandomVerticalFlip operate on tensors).
+            if self.transform:
+                img_tensor = self.transform(img_tensor)
+
+            # Same [-1, 1] normalization as SentinelDataset (CycleGAN convention).
+            img_tensor = (img_tensor - 0.5) / 0.5
+            return img_tensor
+
+        except Exception as e:
+            print(f"[ERROR] FolderDataset failed on {path}: {e}")
+            return torch.zeros((3, self.patch_size, self.patch_size))
+
 
 class SentinelDataset(Dataset):
-    def __init__(self, root_dir, domain='s1', patch_size=256, cloud_threshold=0.30, transform=None, cache_index=True):
+    def __init__(self, root_dir, domain='s1', patch_size=256, cloud_threshold=0.10, transform=None, cache_index=True):
         """
-        Custom Dataset for reading Sentinel-1 (3-Channel) and Sentinel-2 data.
+        Custom Dataset for reading Sentinel-1 (3-Channel) and Sentinel-2 data recursively.
         
         Args:
-            root_dir (str): Path to data.
+            root_dir (str): Root path to data (can contain multiple subdirectories).
             domain (str): 's1' for SAR, 's2' for Optical.
+            patch_size (int): Size of the image patches.
+            cloud_threshold (float): Maximum allowed cloud coverage percentage (for S2).
             transform (callable, optional): PyTorch transforms for augmentation.
+            cache_index (bool): Whether to save/load valid patch locations.
         """
         self.root_dir = root_dir
         self.domain = domain
@@ -25,14 +96,14 @@ class SentinelDataset(Dataset):
         self.transform = transform
         self.valid_patches = [] 
 
-        # Cache file version v7 to ensure fresh indexing for 3-channel logic
-        index_file = os.path.join(root_dir, f"{domain}_patch_index_v7.npy")
+        # Cache file version updated to v8 to force a fresh scan across all subdirectories
+        index_file = os.path.join(root_dir, f"{domain}_patch_index_v8.npy")
 
         if cache_index and os.path.exists(index_file):
             print(f"[INFO] Loading cached index for {domain.upper()} from {index_file}...")
             self.valid_patches = np.load(index_file, allow_pickle=True).tolist()
         else:
-            print(f"[INFO] Scanning {domain.upper()} files to build patch index...")
+            print(f"[INFO] Scanning {domain.upper()} files recursively to build patch index...")
             self._scan_and_index()
             if cache_index and len(self.valid_patches) > 0:
                 np.save(index_file, self.valid_patches)
@@ -40,7 +111,8 @@ class SentinelDataset(Dataset):
 
     def _scan_and_index(self):
         """
-        Scans large TIFF files. Filters out empty SAR patches and cloudy Optical patches.
+        Recursively scans large TIFF files in all subdirectories. 
+        Filters out empty SAR patches and cloudy Optical patches.
         """
         stride = self.patch_size
         
@@ -48,7 +120,9 @@ class SentinelDataset(Dataset):
         # SENTINEL-1 (SAR) SCANNING
         # ---------------------------
         if self.domain == 's1':
-            vv_files = glob.glob(os.path.join(self.root_dir, "*VV*.tif"))
+            # Use ** and recursive=True to find all VV files in all subfolders
+            search_pattern = os.path.join(self.root_dir, "**", "*VV*.tif")
+            vv_files = glob.glob(search_pattern, recursive=True)
             
             for vv_path in tqdm(vv_files, desc="Indexing S1"):
                 vh_path = vv_path.replace("VV", "VH")
@@ -76,7 +150,10 @@ class SentinelDataset(Dataset):
         # SENTINEL-2 (OPTICAL) SCANNING
         # ---------------------------
         elif self.domain == 's2':
-            all_files = glob.glob(os.path.join(self.root_dir, "*.tif"))
+            # Use ** and recursive=True to find all files in all subfolders
+            search_pattern = os.path.join(self.root_dir, "**", "*.tif")
+            all_files = glob.glob(search_pattern, recursive=True)
+            
             groups = {}
             for f in all_files:
                 parts = os.path.basename(f).split('_')
@@ -98,7 +175,8 @@ class SentinelDataset(Dataset):
                             bounds = src_ref.window_bounds(win_ref)
                             win_scl = from_bounds(*bounds, transform=src_scl.transform)
                             
-                            scl = src_scl.read(1, window=win_scl, out_shape=(self.patch_size, self.patch_size))
+                            scl = src_scl.read(1, window=win_scl, out_shape=(self.patch_size, self.patch_size),
+                                               boundless=True, fill_value=0)
                             bad_pixels = np.isin(scl, [3, 8, 9, 10])
                             
                             if (np.sum(bad_pixels) / bad_pixels.size) < self.cloud_threshold:
@@ -175,15 +253,15 @@ class SentinelDataset(Dataset):
         return (stretched - p2) / (p98 - p2)
 
 # ============================================================
-# VERIFICATION BLOCK (This runs when you execute data.py)
+# VERIFICATION BLOCK
 # ============================================================
 if __name__ == "__main__":
-    # Define paths
-    s1_path = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-1/22588247ff6d53170dfec01c75255b58/"
-    s2_path = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-2/22588247ff6d53170dfec01c75255b58/"
+    # Updated to root directories to test recursive search
+    s1_path = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-1"
+    s2_path = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-2"
 
     print("="*60)
-    print("STARTING DATASET VERIFICATION")
+    print("STARTING DATASET VERIFICATION (RECURSIVE MODE)")
     print("="*60)
 
     # Define a test augmentation (Flip)
@@ -196,34 +274,38 @@ if __name__ == "__main__":
     print("\n[INFO] Initializing Sentinel-1 Dataset...")
     if os.path.exists(s1_path):
         ds_s1 = SentinelDataset(root_dir=s1_path, domain='s1', transform=test_transform, cache_index=False)
-        print(f"✅ S1 Dataset Created. Valid Patches: {len(ds_s1)}")
+        print(f"[SUCCESS] S1 Dataset Created. Valid Patches: {len(ds_s1)}")
         
         if len(ds_s1) > 0:
             idx = len(ds_s1) // 2 
             sample_s1 = ds_s1[idx]
-            print(f"📐 Sample S1 Shape: {sample_s1.shape}")
-            print("   (Expected: [3, 256, 256] -> VV, VH, Ratio)")
-            print(f"   Min: {sample_s1.min():.4f}")
-            print(f"   Max: {sample_s1.max():.4f}")
-            print(f"   Mean: {sample_s1.mean():.4f}")
+            print(f"[INFO] Sample S1 Shape: {sample_s1.shape}")
+            print("       (Expected: [3, 256, 256] -> VV, VH, Ratio)")
+            print(f"       Min: {sample_s1.min():.4f}")
+            print(f"       Max: {sample_s1.max():.4f}")
+            print(f"       Mean: {sample_s1.mean():.4f}")
             
             # Check if Ratio channel exists (Index 2)
             if sample_s1.shape[0] == 3:
-                print("✅ 3-Channel SAR Confirmed (VV, VH, Ratio).")
+                print("[SUCCESS] 3-Channel SAR Confirmed (VV, VH, Ratio).")
             else:
-                print("❌ Error: Expected 3 channels for SAR, got something else.")
+                print("[ERROR] Expected 3 channels for SAR, got a different shape.")
+    else:
+        print(f"[WARNING] S1 path does not exist: {s1_path}")
 
     # 2. Test Sentinel-2 (Optical)
     print("\n[INFO] Initializing Sentinel-2 Dataset...")
     if os.path.exists(s2_path):
         ds_s2 = SentinelDataset(root_dir=s2_path, domain='s2', transform=test_transform, cache_index=False)
-        print(f"✅ S2 Dataset Created. Valid Patches: {len(ds_s2)}")
+        print(f"[SUCCESS] S2 Dataset Created. Valid Patches: {len(ds_s2)}")
         
         if len(ds_s2) > 0:
             idx = len(ds_s2) // 2
             sample_s2 = ds_s2[idx]
-            print(f"📐 Sample S2 Shape: {sample_s2.shape}")
-            print(f"   Min: {sample_s2.min():.4f}, Max: {sample_s2.max():.4f}")
+            print(f"[INFO] Sample S2 Shape: {sample_s2.shape}")
+            print(f"       Min: {sample_s2.min():.4f}, Max: {sample_s2.max():.4f}")
+    else:
+        print(f"[WARNING] S2 path does not exist: {s2_path}")
 
     print("\n" + "="*60)
     print("VERIFICATION COMPLETE. READY FOR NEXT STEPS.")

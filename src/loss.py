@@ -24,15 +24,22 @@ class PhaseConsistencyLoss(nn.Module):
 
     def forward(self, pred, target):
         # 1. FFT (Real -> Complex)
+        eps = 1e-6
         pred_fft = torch.fft.rfft2(pred, norm='ortho')
         target_fft = torch.fft.rfft2(target, norm='ortho')
-        
-        # 2. Extract Phase (Angle)
-        pred_phase = torch.angle(pred_fft)
-        target_phase = torch.angle(target_fft)
-        
-        # 3. Optimize strictly for Phase similarity
-        return self.l1(pred_phase, target_phase)
+
+        # 2. Represent phase as UNIT PHASORS (F / |F|) instead of raw angles.
+        #    torch.angle() is discontinuous at the +/-pi wrap boundary and has an
+        #    undefined gradient where the amplitude is ~0, which injects noise and
+        #    can destabilize training. Comparing unit phasors captures the exact
+        #    same phase information (structure) with smooth, bounded gradients and
+        #    no NaNs, while still fully preserving the phase-locking objective.
+        pred_phasor = pred_fft / (pred_fft.abs() + eps)
+        target_phasor = target_fft / (target_fft.abs() + eps)
+
+        # 3. L1 distance between phasors (real + imaginary parts)
+        diff = pred_phasor - target_phasor
+        return diff.real.abs().mean() + diff.imag.abs().mean()
 
 # ==========================================================
 # 2. WAVELET LOSS (NOVELTY: FREQUENCY SEPARATION)

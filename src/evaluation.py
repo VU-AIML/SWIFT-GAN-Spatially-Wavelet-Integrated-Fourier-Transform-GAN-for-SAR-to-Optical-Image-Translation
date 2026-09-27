@@ -14,8 +14,8 @@ from metrics import GANMetrics
 # ==========================================================
 # 1. PATH CONFIGURATION (Senin Belirttiğin Pathler)
 # ==========================================================
-S1_ROOT = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-1/22588247ff6d53170dfec01c75255b58/"
-S2_ROOT = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-2/22588247ff6d53170dfec01c75255b58/"
+S1_ROOT = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-1"
+S2_ROOT = "/scratch/lustre/projects/hpc_project_a1fb2511d81f42fba1f872930bb56828/data/Sentinel-2"
 
 # Checkpoint yolları
 CHECKPOINT_AB = "./checkpoints_swift_no_wavelet/netG_AB_ep100.pth" # SAR -> Opt
